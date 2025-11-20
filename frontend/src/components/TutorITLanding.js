@@ -1,9 +1,9 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 
 const TutorITLanding = () => {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
-      
+
       {/* Navbar */}
       <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -11,16 +11,16 @@ const TutorITLanding = () => {
             <span className="text-blue-600">Tutor</span>
             <span className="text-green-500">IT</span>
           </div>
-          
+
           <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
             <a href="#" className="hover:text-blue-600 transition">Find a Tutor</a>
             <a href="#" className="hover:text-blue-600 transition">Become a Tutor</a>
             <a href="#" className="hover:text-blue-600 transition">How It Works</a>
           </nav>
 
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded font-medium transition">
+          <Link to="/login" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded font-medium transition">
             Sign Up/Sign In
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -33,7 +33,7 @@ const TutorITLanding = () => {
         <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto mb-10">
           TutorIT connects you with top-performing student peers for easy, flexible, and affordable study support.
         </p>
-        
+
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold shadow-lg shadow-blue-200 transition">
             Find You Peer Tutor
@@ -54,9 +54,9 @@ const TutorITLanding = () => {
         <div className="max-w-4xl mx-auto bg-gray-100 p-6 rounded-xl shadow-sm">
           <div className="flex flex-col md:flex-row gap-2 mb-6">
             <div className="relative flex-grow">
-              <input 
-                type="text" 
-                placeholder="e.g., Calculus, Organic Chemistry, History 101" 
+              <input
+                type="text"
+                placeholder="e.g., Calculus, Organic Chemistry, History 101"
                 className="w-full p-4 pl-4 rounded-lg border-none focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -116,15 +116,15 @@ const TutorITLanding = () => {
             </p>
             <ul className="space-y-4 mb-8 text-gray-700">
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Simple Setup:**</span> 
+                <span className="font-bold mr-2">• **Simple Setup:**</span>
                 Get verified quickly and set your own profile.
               </li>
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Total Flexibility:**</span> 
+                <span className="font-bold mr-2">• **Total Flexibility:**</span>
                 Tutor whenever you have a free hour between classes or on weekends.
               </li>
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Weekly Pay:**</span> 
+                <span className="font-bold mr-2">• **Weekly Pay:**</span>
                 Earn money based on your self-set rates and get paid consistently.
               </li>
             </ul>
@@ -132,16 +132,16 @@ const TutorITLanding = () => {
               Apply to be a Tutor Today
             </button>
           </div>
-          
+
           <div className="flex justify-center">
             {/* Placeholder for the student image - using a gray placeholder for generic use */}
             <div className="w-full max-w-md h-80 bg-gray-300 rounded-xl overflow-hidden shadow-lg relative">
-                {/* In a real app, use an <img> tag here */}
-                <img 
-                    src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                    alt="Smiling Student Tutor" 
-                    className="w-full h-full object-cover"
-                />
+              {/* In a real app, use an <img> tag here */}
+              <img
+                src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                alt="Smiling Student Tutor"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ const TutorITLanding = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-bold mb-4">Company</h4> 
+            <h4 className="text-white font-bold mb-4">Company</h4>
             {/* Note: Image had 'Company' twice, usually this is 'Support' */}
             <ul className="space-y-2">
               <li><a href="#" className="hover:text-white transition">Help Center</a></li>
@@ -194,7 +194,7 @@ const TutorITLanding = () => {
 
           <div>
             <h4 className="text-white font-bold mb-4">Company</h4>
-             {/* Note: Image had 'Company' thrice, usually this is 'Legal' */}
+            {/* Note: Image had 'Company' thrice, usually this is 'Legal' */}
             <ul className="space-y-2">
               <li><a href="#" className="hover:text-white transition">Legal of Services</a></li>
               <li><a href="#" className="hover:text-white transition">Privacy Policy</a></li>
