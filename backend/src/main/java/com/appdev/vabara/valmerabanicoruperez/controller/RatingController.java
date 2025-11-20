@@ -1,6 +1,5 @@
 package com.appdev.vabara.valmerabanicoruperez.controller;
 
-import com.appdev.vabara.valmerabanicoruperez.entity.Rating;
 import com.appdev.vabara.valmerabanicoruperez.entity.RatingEntity;
 import com.appdev.vabara.valmerabanicoruperez.service.RatingService;
 import org.springframework.web.bind.annotation.*;
@@ -21,22 +20,22 @@ public class RatingController {
     }
 
     @GetMapping("/{id}")
-    public Rating getRatingById(@PathVariable int id) {
+    public RatingEntity getRatingById(@PathVariable Long id) {
         return ratingService.getRatingById(id);
     }
 
     @PostMapping
-    public RatingEntity createRating(@RequestBody Rating rating) {
+    public RatingEntity createRating(@RequestBody RatingEntity rating) {
         return ratingService.saveRating(rating);
     }
 
     @PutMapping("/{id}")
-    public RatingEntity updateRating(@PathVariable int id, @RequestBody RatingEntity updatedRating) {
+    public RatingEntity updateRating(@PathVariable Long id, @RequestBody RatingEntity updatedRating) {
         return ratingService.updateRating(id, updatedRating);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteRating(@PathVariable int id) {
+    public void deleteRating(@PathVariable Long id) {
         ratingService.deleteRating(id);
     }
 }
