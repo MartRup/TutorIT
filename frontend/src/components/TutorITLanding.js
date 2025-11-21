@@ -101,15 +101,15 @@ const TutorITLanding = () => {
             </p>
             <ul className="space-y-4 mb-8 text-gray-700">
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Simple Setup:**</span>
+                <span className="font-bold mr-2">•Simple Setup:</span>
                 Get verified quickly and set your own profile.
               </li>
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Total Flexibility:**</span>
+                <span className="font-bold mr-2">•Total Flexibility:</span>
                 Tutor whenever you have a free hour between classes or on weekends.
               </li>
               <li className="flex items-start">
-                <span className="font-bold mr-2">• **Weekly Pay:**</span>
+                <span className="font-bold mr-2">•Weekly Pay:</span>
                 Earn money based on your self-set rates and get paid consistently.
               </li>
             </ul>
