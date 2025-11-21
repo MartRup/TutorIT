@@ -8,15 +8,17 @@ import {
   MessageCircle,
   Settings
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   return (
     <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <aside className="w-56 border-r border-gray-200 p-6">
         <h1 className="mb-8 text-2xl font-bold">
           <span className="text-blue-600">Tutor</span>
-          <span>T</span>
+          <span>IT</span>
         </h1>
 
         <nav className="space-y-4">
@@ -25,7 +27,7 @@ export default function Dashboard() {
           </button>
 
           <NavItem icon={<Play />} label="Sessions" />
-          <NavItem icon={<Users />} label="Find Tutors" />
+          <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
           <NavItem icon={<MessageCircle />} label="Messages" />
           <NavItem icon={<Settings />} label="Settings" />
         </nav>
@@ -82,9 +84,9 @@ export default function Dashboard() {
 
 /* Components that feel more hand-written */
 
-function NavItem({ icon, label }) {
+function NavItem({ icon, label, onClick }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer">
+    <div onClick={onClick} className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer">
       {icon}
       <span className="text-lg">{label}</span>
     </div>
