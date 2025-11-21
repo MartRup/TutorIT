@@ -8,7 +8,7 @@ const LoginPage = () => {
         <div className="min-h-screen bg-blue-50 flex flex-col">
             <Header />
             <div className="flex-grow flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-10">
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-blue-600 mb-2">TutorIT</h1>
                     </div>
@@ -22,7 +22,7 @@ const LoginPage = () => {
                                 </div>
                                 <input
                                     type="email"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="you@example.com"
                                 />
                             </div>
@@ -36,7 +36,7 @@ const LoginPage = () => {
                                 </div>
                                 <input
                                     type="password"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -65,7 +65,7 @@ const LoginPage = () => {
                         <div>
                             <button
                                 type="submit"
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                             >
                                 Sign In
                             </button>
