@@ -1,7 +1,7 @@
 package com.appdev.vabara.valmerabanicoruperez.controller;
 
 import com.appdev.vabara.valmerabanicoruperez.entity.PaymentEntity;
-import com.appdev.vabara.valmerabanicoruperez.repository.PaymentRepository;
+import com.appdev.vabara.valmerabanicoruperez.service.PaymentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,52 +13,56 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
 
-    private final PaymentRepository paymentRepository;
+    private final PaymentService paymentService;
 
-    public PaymentController(PaymentRepository paymentRepository) {
-        this.paymentRepository = paymentRepository;
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
     }
 
     @GetMapping
     public List<PaymentEntity> getAllPayments() {
-        return paymentRepository.findAll();
+        return paymentService.findAllPayments();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentEntity> getPaymentById(@PathVariable("id") String paymentId) {
-        Optional<PaymentEntity> payment = paymentRepository.findById(paymentId);
-        return payment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            PaymentEntity payment = paymentService.findPaymentById(paymentId);
+            return ResponseEntity.ok(payment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping
     public PaymentEntity createPayment(@RequestBody PaymentEntity payment) {
-        return paymentRepository.save(payment);
+        return paymentService.addPayment(payment);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PaymentEntity> updatePayment(
             @PathVariable("id") String paymentId,
             @RequestBody PaymentEntity updatedPayment) {
-        if (!paymentRepository.existsById(paymentId)) {
+        try {
+            PaymentEntity payment = paymentService.updatePayment(paymentId, updatedPayment);
+            return ResponseEntity.ok(payment);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        updatedPayment.setPaymentId(paymentId);
-        PaymentEntity savedPayment = paymentRepository.save(updatedPayment);
-        return ResponseEntity.ok(savedPayment);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePayment(@PathVariable("id") String paymentId) {
-        if (!paymentRepository.existsById(paymentId)) {
+        try {
+            paymentService.deletePayment(paymentId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        paymentRepository.deleteById(paymentId);
-        return ResponseEntity.noContent().build();
     }
 }

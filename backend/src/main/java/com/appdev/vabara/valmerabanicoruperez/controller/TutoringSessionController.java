@@ -1,7 +1,7 @@
 package com.appdev.vabara.valmerabanicoruperez.controller;
 
 import com.appdev.vabara.valmerabanicoruperez.entity.TutoringSessionEntity;
-import com.appdev.vabara.valmerabanicoruperez.repository.TutoringSessionRepository;
+import com.appdev.vabara.valmerabanicoruperez.service.TutoringSessionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,52 +13,56 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tutoring-sessions")
 public class TutoringSessionController {
 
-    private final TutoringSessionRepository tutoringSessionRepository;
+    private final TutoringSessionService tutoringSessionService;
 
-    public TutoringSessionController(TutoringSessionRepository tutoringSessionRepository) {
-        this.tutoringSessionRepository = tutoringSessionRepository;
+    public TutoringSessionController(TutoringSessionService tutoringSessionService) {
+        this.tutoringSessionService = tutoringSessionService;
     }
 
     @GetMapping
     public List<TutoringSessionEntity> getAllTutoringSessions() {
-        return tutoringSessionRepository.findAll();
+        return tutoringSessionService.findAllTutoringSessions();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TutoringSessionEntity> getTutoringSessionById(@PathVariable("id") String sessionId) {
-        Optional<TutoringSessionEntity> tutoringSession = tutoringSessionRepository.findById(sessionId);
-        return tutoringSession.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            TutoringSessionEntity tutoringSession = tutoringSessionService.findTutoringSessionById(sessionId);
+            return ResponseEntity.ok(tutoringSession);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping
     public TutoringSessionEntity createTutoringSession(@RequestBody TutoringSessionEntity tutoringSession) {
-        return tutoringSessionRepository.save(tutoringSession);
+        return tutoringSessionService.addTutoringSession(tutoringSession);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TutoringSessionEntity> updateTutoringSession(
             @PathVariable("id") String sessionId,
             @RequestBody TutoringSessionEntity updatedSession) {
-        if (!tutoringSessionRepository.existsById(sessionId)) {
+        try {
+            TutoringSessionEntity tutoringSession = tutoringSessionService.updateTutoringSession(sessionId, updatedSession);
+            return ResponseEntity.ok(tutoringSession);
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        updatedSession.setSessionId(sessionId);
-        TutoringSessionEntity savedSession = tutoringSessionRepository.save(updatedSession);
-        return ResponseEntity.ok(savedSession);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTutoringSession(@PathVariable("id") String sessionId) {
-        if (!tutoringSessionRepository.existsById(sessionId)) {
+        try {
+            tutoringSessionService.deleteTutoringSession(sessionId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
-        tutoringSessionRepository.deleteById(sessionId);
-        return ResponseEntity.noContent().build();
     }
 }
