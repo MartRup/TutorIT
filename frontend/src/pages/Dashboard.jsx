@@ -28,7 +28,7 @@ export default function Dashboard() {
 
           <NavItem icon={<Play />} label="Sessions" />
           <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
-          <NavItem icon={<MessageCircle />} label="Messages" />
+          <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
           <NavItem icon={<Settings />} label="Settings" />
         </nav>
       </aside>

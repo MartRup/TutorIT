@@ -275,7 +275,7 @@ export default function FindTutorsPage() {
             Find Tutors
           </button>
 
-          <NavItem icon={<MessageCircle />} label="Messages" />
+          <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
           <NavItem icon={<Settings />} label="Settings" />
         </nav>
       </div>
