@@ -5,7 +5,6 @@ import com.appdev.vabara.valmerabanicoruperez.repository.TutorRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TutorService {
@@ -16,23 +15,40 @@ public class TutorService {
         this.tutorRepository = tutorRepository;
     }
 
+    // Create
+    public TutorEntity addTutor(TutorEntity tutor) {
+        return tutorRepository.save(tutor);
+    }
+
+    // Read - Get all
     public List<TutorEntity> getAllTutors() {
         return tutorRepository.findAll();
     }
 
-    public Optional<TutorEntity> findById(Long tutorId) {
-        return tutorRepository.findById(tutorId);
+    // Read - Get by ID
+    public TutorEntity findTutorById(Long id) {
+        return tutorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tutor not found with id: " + id));
     }
 
-    public TutorEntity saveTutor(TutorEntity tutorEntity) {
-        return tutorRepository.save(tutorEntity);
+    // Update
+    public TutorEntity updateTutor(Long id, TutorEntity tutor) {
+        TutorEntity existingTutor = findTutorById(id);
+        // Assuming TutorEntity has appropriate setter methods
+        // Update fields as needed based on the entity structure
+        return tutorRepository.save(existingTutor);
     }
 
-    public void deleteTutor(Long tutorId) {
-        tutorRepository.deleteById(tutorId);
+    // Delete
+    public void deleteTutor(Long id) {
+        if (!tutorRepository.existsById(id)) {
+            throw new RuntimeException("Tutor not found with id: " + id);
+        }
+        tutorRepository.deleteById(id);
     }
 
-    public boolean existsById(Long tutorId) {
-        return tutorRepository.existsById(tutorId);
+    // Check if exists
+    public boolean existsById(Long id) {
+        return tutorRepository.existsById(id);
     }
 }
