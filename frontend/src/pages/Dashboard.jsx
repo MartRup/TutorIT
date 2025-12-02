@@ -20,6 +20,19 @@ export default function Dashboard() {
           <span className="text-blue-600">Tutor</span>
           <span>IT</span>
         </h1>
+
+        <nav className="space-y-4">
+          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white">
+            Dashboard
+          </button>
+
+          <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
+          <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
+          <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
+          <NavItem icon={<Settings />} label="Settings" />
+        </nav>
+      </aside>
+
       {/* Main section */}
       <main className="flex-1">
         <header className="flex items-center justify-end border-b border-gray-200 px-8 py-4 gap-6">
