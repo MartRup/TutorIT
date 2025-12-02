@@ -268,7 +268,7 @@ export default function FindTutorsPage() {
 
         <nav className="space-y-4">
           <NavItem icon={<LayoutDashboard />} label="Dashboard" onClick={() => navigate('/dashboard')} />
-          <NavItem icon={<Play />} label="Sessions" />
+          <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
 
           <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
             <Users className="h-5 w-5" />

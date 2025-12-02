@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import FindTutorsPage from './pages/FindTutors';
 import MessagesPage from './pages/MessagesPage';
+import SessionsPage from './pages/SessionsPage';
 import './App.css';
 import Dashboard from './pages/Dashboard';
 
@@ -19,6 +20,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/find-tutors" element={<FindTutorsPage />} />
           <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/sessions" element={<SessionsPage />} />
         </Routes>
       </div>
     </Router>
