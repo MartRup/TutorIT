@@ -3,23 +3,42 @@ import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { Mail, Lock } from 'lucide-react';
 
-const HARD_USER = "User123@gmail.com";
-const HARD_PASSWORD = "Password123";
-
 const LoginPage = () => {
     const navigate = useNavigate();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
 
-        if (email === HARD_USER && password === HARD_PASSWORD) {
-            alert("Login Successful!");
-            navigate("/dashboard"); // 🔥 Redirect to dashboard
-        } else {
-            alert("Invalid Credentials");
+        try {
+            const response = await fetch('http://localhost:8080/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Store user info in localStorage or context
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userType', data.userType);
+                alert("Login Successful!");
+                navigate("/dashboard");
+            } else {
+                alert(data.message || "Invalid Credentials");
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert("An error occurred during login. Please try again.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -93,10 +112,11 @@ const LoginPage = () => {
                         {/* Submit Button */}
                         <button
                             type="submit"
+                            disabled={loading}
                             className="w-full py-3 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700 
-                            font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                         >
-                            Sign In
+                            {loading ? 'Signing In...' : 'Sign In'}
                         </button>
                     </form>
 
