@@ -8,6 +8,7 @@ import MessagesPage from './pages/MessagesPage';
 import SessionsPage from './pages/SessionsPage';
 import './App.css';
 import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -17,10 +18,26 @@ function App() {
           <Route path="/" element={<TutorITLanding />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/find-tutors" element={<FindTutorsPage />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/sessions" element={<SessionsPage />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/find-tutors" element={
+            <ProtectedRoute>
+              <FindTutorsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/sessions" element={
+            <ProtectedRoute>
+              <SessionsPage />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>
