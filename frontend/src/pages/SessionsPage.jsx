@@ -52,6 +52,11 @@ export default function SessionsPage() {
             onClick={() => navigate('/messages')} 
           />
           <NavItem 
+            icon={<User />} 
+            label="Students" 
+            onClick={() => navigate('/students')} 
+          />
+          <NavItem 
             icon={<Settings />} 
             label="Settings" 
           />

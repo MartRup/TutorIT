@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import FindTutorsPage from './pages/FindTutors';
 import MessagesPage from './pages/MessagesPage';
 import SessionsPage from './pages/SessionsPage';
+import StudentsPage from './pages/StudentsPage';
 import './App.css';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,6 +37,11 @@ function App() {
           <Route path="/sessions" element={
             <ProtectedRoute>
               <SessionsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/students" element={
+            <ProtectedRoute>
+              <StudentsPage />
             </ProtectedRoute>
           } />
         </Routes>

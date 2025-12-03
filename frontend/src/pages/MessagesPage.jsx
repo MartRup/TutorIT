@@ -161,6 +161,7 @@ export default function MessagesPage() {
             Messages
           </button>
           
+          <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
           <NavItem icon={<Settings />} label="Settings" />
         </nav>
       </aside>
