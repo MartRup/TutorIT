@@ -9,9 +9,18 @@ import {
   Settings
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      navigate('/login');
+    }
+  }, [navigate]);
   return (
     <div className="flex h-screen bg-white">
       {/* Sidebar */}

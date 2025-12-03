@@ -10,6 +10,7 @@ import BookSession from './pages/BookSession';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
 import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
