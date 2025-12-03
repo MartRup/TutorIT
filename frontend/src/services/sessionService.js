@@ -1,10 +1,10 @@
-// API service for making HTTP requests to the backend
+// Session service for making HTTP requests to the backend
 const API_BASE_URL = 'http://localhost:8080';
 
-class ApiService {
-  async getStudents() {
+class SessionService {
+  async getSessions() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/students`, {
+      const response = await fetch(`${API_BASE_URL}/api/tutoring-sessions`, {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -12,14 +12,14 @@ class ApiService {
       }
       return await response.json();
     } catch (error) {
-      console.error('Error fetching students:', error);
+      console.error('Error fetching sessions:', error);
       throw error;
     }
   }
 
-  async getStudent(id) {
+  async getSession(id) {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/students/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tutoring-sessions/${id}`, {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -27,12 +27,12 @@ class ApiService {
       }
       return await response.json();
     } catch (error) {
-      console.error(`Error fetching student with id ${id}:`, error);
+      console.error(`Error fetching session with id ${id}:`, error);
       throw error;
     }
   }
 
-  async createStudent(studentData) {
+  async createSession(sessionData) {
     try {
       const token = localStorage.getItem('token');
       const headers = {
@@ -42,11 +42,11 @@ class ApiService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/students`, {
+      const response = await fetch(`${API_BASE_URL}/api/tutoring-sessions`, {
         method: 'POST',
         headers,
         credentials: 'include',
-        body: JSON.stringify(studentData),
+        body: JSON.stringify(sessionData),
       });
       
       if (!response.ok) {
@@ -55,12 +55,12 @@ class ApiService {
       
       return await response.json();
     } catch (error) {
-      console.error('Error creating student:', error);
+      console.error('Error creating session:', error);
       throw error;
     }
   }
 
-  async updateStudent(id, studentData) {
+  async updateSession(id, sessionData) {
     try {
       const token = localStorage.getItem('token');
       const headers = {
@@ -70,11 +70,11 @@ class ApiService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/students/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tutoring-sessions/${id}`, {
         method: 'PUT',
         headers,
         credentials: 'include',
-        body: JSON.stringify(studentData),
+        body: JSON.stringify(sessionData),
       });
       
       if (!response.ok) {
@@ -83,12 +83,12 @@ class ApiService {
       
       return await response.json();
     } catch (error) {
-      console.error(`Error updating student with id ${id}:`, error);
+      console.error(`Error updating session with id ${id}:`, error);
       throw error;
     }
   }
 
-  async deleteStudent(id) {
+  async deleteSession(id) {
     try {
       const token = localStorage.getItem('token');
       const headers = {};
@@ -96,7 +96,7 @@ class ApiService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/students/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/tutoring-sessions/${id}`, {
         method: 'DELETE',
         headers,
         credentials: 'include',
@@ -108,11 +108,11 @@ class ApiService {
       
       return response.status === 204;
     } catch (error) {
-      console.error(`Error deleting student with id ${id}:`, error);
+      console.error(`Error deleting session with id ${id}:`, error);
       throw error;
     }
   }
 }
 
-const apiService = new ApiService();
-export default apiService;
+const sessionService = new SessionService();
+export default sessionService;
