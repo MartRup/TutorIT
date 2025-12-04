@@ -5,15 +5,35 @@ const Header = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        // Check if user is logged in
-        setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
+        // Check if user is logged in by making a request to a protected endpoint
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/status', {
+                    method: 'GET',
+                    credentials: 'include', // Include cookies in the request
+                });
+                
+                setIsLoggedIn(response.ok);
+            } catch (error) {
+                setIsLoggedIn(false);
+            }
+        };
+        
+        checkAuthStatus();
     }, []);
 
-    const handleLogout = () => {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userType');
-        setIsLoggedIn(false);
-        window.location.href = '/';
+    const handleLogout = async () => {
+        try {
+            await fetch('http://localhost:8080/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include', // Include cookies in the request
+            });
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            setIsLoggedIn(false);
+            window.location.href = '/';
+        }
     };
 
     return (
@@ -29,6 +49,7 @@ const Header = () => {
                     <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
                         <Link to="/dashboard" className="hover:text-blue-600 transition">Dashboard</Link>
                         <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
+                        <Link to="/students" className="hover:text-blue-600 transition">Students</Link>
                         <button onClick={handleLogout} className="hover:text-blue-600 transition">Logout</button>
                     </nav>
                 ) : (

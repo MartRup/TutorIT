@@ -34,8 +34,19 @@ public class TutorService {
     // Update
     public TutorEntity updateTutor(Long id, TutorEntity tutor) {
         TutorEntity existingTutor = findTutorById(id);
-        // Assuming TutorEntity has appropriate setter methods
-        // Update fields as needed based on the entity structure
+        // Update all fields
+        existingTutor.setName(tutor.getName());
+        existingTutor.setEmail(tutor.getEmail());
+        existingTutor.setPassword(tutor.getPassword());
+        existingTutor.setExpertiseSubjects(tutor.getExpertiseSubjects());
+        existingTutor.setHourlyRate(tutor.getHourlyRate());
+        existingTutor.setInstitution(tutor.getInstitution());
+        existingTutor.setRating(tutor.getRating());
+        existingTutor.setReviews(tutor.getReviews());
+        existingTutor.setLocation(tutor.getLocation());
+        existingTutor.setSchedule(tutor.getSchedule());
+        existingTutor.setAvailability(tutor.getAvailability());
+        existingTutor.setExperience(tutor.getExperience());
         return tutorRepository.save(existingTutor);
     }
 

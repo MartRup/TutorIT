@@ -35,6 +35,22 @@ public class TutoringSessionEntity {
     @Column(name = "payment_id", nullable = false)
     private String paymentId;
 
+    // Additional fields for frontend display
+    @Column(name = "tutor_name")
+    private String tutorName;
+
+    @Column(name = "subject")
+    private String subject;
+
+    @Column(name = "topic")
+    private String topic;
+
+    @Column(name = "rating")
+    private Integer rating;
+
+    @Column(name = "feedback", length = 1000)
+    private String feedback;
+
     public TutoringSessionEntity() {
     }
 
@@ -112,5 +128,46 @@ public class TutoringSessionEntity {
 
     public void setPaymentId(String paymentId) {
         this.paymentId = paymentId;
+    }
+
+    // Getters and setters for additional fields
+    public String getTutorName() {
+        return tutorName;
+    }
+
+    public void setTutorName(String tutorName) {
+        this.tutorName = tutorName;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getTopic() {
+        return topic;
+    }
+
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
     }
 }

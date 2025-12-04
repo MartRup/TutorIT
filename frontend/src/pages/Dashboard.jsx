@@ -16,10 +16,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      navigate('/login');
-    }
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/status', {
+          method: 'GET',
+          credentials: 'include', // Include cookies in the request
+        });
+        
+        if (!response.ok) {
+          navigate('/login');
+        }
+      } catch (error) {
+        navigate('/login');
+      }
+    };
+    
+    checkAuthStatus();
   }, [navigate]);
   return (
     <div className="flex h-screen bg-white">
@@ -38,6 +50,8 @@ export default function Dashboard() {
           <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
           <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
           <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
+          <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
+          <NavItem icon={<Settings />} label="Settings" />
           <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
         </nav>
       </aside>

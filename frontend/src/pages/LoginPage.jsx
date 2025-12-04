@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { Mail, Lock } from 'lucide-react';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const LoginPage = () => {
     const navigate = useNavigate();
@@ -20,23 +21,42 @@ const LoginPage = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Include cookies in the request
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
 
             if (data.success) {
-                // Store user info in localStorage or context
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userType', data.userType);
-                alert("Login Successful!");
-                navigate("/dashboard");
+                // Use SweetAlert2 for success message
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Login Successful!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        navigate("/dashboard");
+                    }
+                });
             } else {
-                alert(data.message || "Invalid Credentials");
+                // Use SweetAlert2 for error message
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message || "Invalid Credentials",
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (error) {
             console.error('Login error:', error);
-            alert("An error occurred during login. Please try again.");
+            // Use SweetAlert2 for error message
+            Swal.fire({
+                title: 'Error!',
+                text: "An error occurred during login. Please try again.",
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         } finally {
             setLoading(false);
         }

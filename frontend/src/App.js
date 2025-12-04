@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import FindTutorsPage from './pages/FindTutors';
 import MessagesPage from './pages/MessagesPage';
 import SessionsPage from './pages/SessionsPage';
+import StudentsPage from './pages/StudentsPage';
 import BookSession from './pages/BookSession';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
@@ -20,6 +21,31 @@ function App() {
           <Route path="/" element={<TutorITLanding />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/find-tutors" element={
+            <ProtectedRoute>
+              <FindTutorsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <MessagesPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/sessions" element={
+            <ProtectedRoute>
+              <SessionsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/students" element={
+            <ProtectedRoute>
+              <StudentsPage />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/find-tutors" element={<FindTutorsPage />} />
           <Route path="/book-session" element={<BookSession />} />
