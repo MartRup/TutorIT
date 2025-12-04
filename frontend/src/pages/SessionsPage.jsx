@@ -15,6 +15,16 @@ import {
   Star,
   Plus,
   Edit,
+  Video,
+  Mic,
+  MicOff,
+  VideoOff,
+  Monitor,
+  MonitorOff,
+  Phone,
+  X,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import sessionService from "../services/sessionService";
@@ -198,6 +208,42 @@ export default function SessionsPage() {
           </div>
         </main>
       </div>
+  const [activeSession, setActiveSession] = useState(null);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+
+  const handleJoinSession = (sessionData) => {
+    setActiveSession(sessionData);
+  };
+
+  const handleStartSession = (sessionData) => {
+    setActiveSession({ ...sessionData, status: "Live" });
+  };
+
+  const handleEndSession = () => {
+    setActiveSession(null);
+    setIsVideoOn(true);
+    setIsMicOn(true);
+    setIsScreenSharing(false);
+  };
+
+  // If there's an active session, show the session view
+  if (activeSession) {
+    return (
+      <SessionView
+        session={activeSession}
+        onEndSession={handleEndSession}
+        isVideoOn={isVideoOn}
+        setIsVideoOn={setIsVideoOn}
+        isMicOn={isMicOn}
+        setIsMicOn={setIsMicOn}
+        isScreenSharing={isScreenSharing}
+        setIsScreenSharing={setIsScreenSharing}
+        isMinimized={isMinimized}
+        setIsMinimized={setIsMinimized}
+      />
     );
   }
 
@@ -247,6 +293,7 @@ export default function SessionsPage() {
           <NavItem 
             icon={<Settings />} 
             label="Settings" 
+            onClick={() => navigate('/settings')}
           />
         </nav>
       </aside>
@@ -300,6 +347,14 @@ export default function SessionsPage() {
             {activeTab === "active" && <ActiveUpcomingContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
             {activeTab === "completed" && <CompletedContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
             {activeTab === "history" && <HistoryContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
+            {activeTab === "active" && (
+              <ActiveUpcomingContent 
+                onJoinSession={handleJoinSession}
+                onStartSession={handleStartSession}
+              />
+            )}
+            {activeTab === "completed" && <CompletedContent />}
+            {activeTab === "history" && <HistoryContent />}
           </div>
         </div>
       </main>
@@ -346,6 +401,7 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete }) {
     session.status === "scheduled" || session.status === "upcoming"
   );
 
+function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
   return (
     <>
       {/* Active Sessions */}
@@ -371,6 +427,25 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete }) {
               <p className="text-gray-500">No active sessions at the moment</p>
             </div>
           )}
+          <ActiveSessionCard 
+            tutorName="Sarah Johnson"
+            subject="Mathematics"
+            topic="Calculus - Derivatives"
+            startTime="2:00 PM"
+            duration="45 min"
+            status="Live"
+            onJoinSession={onJoinSession}
+          />
+          <ActiveSessionCard 
+            tutorName="Mike Chen"
+            subject="Physics"
+            topic="Quantum Mechanics"
+            startTime="3:30 PM"
+            duration="60 min"
+            status="Scheduled"
+            isScheduled={true}
+            onStartSession={onStartSession}
+          />
         </div>
       </section>
 
@@ -405,6 +480,23 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete }) {
 
 function ActiveSessionCard({ session, onEdit, onDelete }) {
   const { sessionId, tutorName, subject, topic, dateTime, duration, status, isScheduled } = session;
+function ActiveSessionCard({ tutorName, subject, topic, startTime, duration, status, isScheduled, onJoinSession, onStartSession }) {
+  const handleAction = () => {
+    const sessionData = {
+      tutorName,
+      subject,
+      topic,
+      startTime,
+      duration,
+      status
+    };
+    
+    if (isScheduled) {
+      onStartSession?.(sessionData);
+    } else {
+      onJoinSession?.(sessionData);
+    }
+  };
 
   return (
     <div className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
@@ -431,6 +523,7 @@ function ActiveSessionCard({ session, onEdit, onDelete }) {
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             Started at {dateTime ? new Date(dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}
+            {isScheduled ? `Scheduled for ${startTime}` : `Started at ${startTime}`}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
@@ -440,7 +533,10 @@ function ActiveSessionCard({ session, onEdit, onDelete }) {
       </div>
 
       <div className="flex gap-3">
-        <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+        <button 
+          onClick={handleAction}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
           {isScheduled ? <Play className="w-4 h-4" /> : null}
           {isScheduled ? "Start Session" : "Join Session"}
         </button>
@@ -682,5 +778,211 @@ function HistoryContent({ sessions, onEdit, onDelete }) {
         </div>
       )}
     </section>
+  );
+}
+}
+
+function SessionView({ 
+  session, 
+  onEndSession, 
+  isVideoOn, 
+  setIsVideoOn, 
+  isMicOn, 
+  setIsMicOn, 
+  isScreenSharing, 
+  setIsScreenSharing,
+  isMinimized,
+  setIsMinimized
+}) {
+  const [sessionTime, setSessionTime] = useState(0);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [messageInput, setMessageInput] = useState("");
+
+  // Timer effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSessionTime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleSendMessage = (e) => {
+    e.preventDefault();
+    if (messageInput.trim()) {
+      setChatMessages([...chatMessages, { text: messageInput, sender: "You", time: new Date() }]);
+      setMessageInput("");
+    }
+  };
+
+  if (isMinimized) {
+    return (
+      <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-2xl border border-gray-200 w-80 z-50">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="font-semibold text-sm">{session.tutorName}</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsMinimized(false)}
+              className="p-1 hover:bg-gray-100 rounded"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onEndSession}
+              className="p-1 hover:bg-red-100 rounded text-red-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="aspect-video bg-gray-900 rounded mb-2 flex items-center justify-center">
+            <User className="w-12 h-12 text-gray-400" />
+          </div>
+          <div className="text-xs text-gray-600 text-center">
+            {formatTime(sessionTime)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen bg-gray-900 flex flex-col">
+      {/* Header */}
+      <div className="bg-gray-800 text-white px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="font-semibold">{session.tutorName}</span>
+            <span className="text-gray-400">•</span>
+            <span className="text-sm text-gray-400">{session.subject}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-300">
+            {formatTime(sessionTime)}
+          </div>
+          <button
+            onClick={() => setIsMinimized(true)}
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+          >
+            <Minimize2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={onEndSession}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Phone className="w-4 h-4 rotate-[135deg]" />
+            <span>End Session</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Video Area */}
+        <div className="flex-1 flex flex-col p-4">
+          {/* Main Video */}
+          <div className="flex-1 bg-gray-800 rounded-lg mb-4 flex items-center justify-center relative">
+            <div className="text-center">
+              <div className="w-32 h-32 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-16 h-16 text-gray-400" />
+              </div>
+              <p className="text-white text-lg font-semibold">{session.tutorName}</p>
+              <p className="text-gray-400">{session.topic}</p>
+            </div>
+            {isScreenSharing && (
+              <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                <Monitor className="w-4 h-4" />
+                Sharing Screen
+              </div>
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => setIsMicOn(!isMicOn)}
+              className={`p-3 rounded-full transition-colors ${
+                isMicOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+              }`}
+            >
+              {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={() => setIsVideoOn(!isVideoOn)}
+              className={`p-3 rounded-full transition-colors ${
+                isVideoOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+              }`}
+            >
+              {isVideoOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={() => setIsScreenSharing(!isScreenSharing)}
+              className={`p-3 rounded-full transition-colors ${
+                isScreenSharing ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-700 hover:bg-gray-600 text-white"
+              }`}
+            >
+              {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
+            </button>
+            <button
+              onClick={onEndSession}
+              className="p-3 rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors"
+            >
+              <Phone className="w-5 h-5 rotate-[135deg]" />
+            </button>
+          </div>
+        </div>
+
+        {/* Chat Sidebar */}
+        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-900">Chat</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {chatMessages.length === 0 ? (
+              <div className="text-center text-gray-500 text-sm mt-8">
+                No messages yet. Start the conversation!
+              </div>
+            ) : (
+              chatMessages.map((msg, idx) => (
+                <div key={idx} className="mb-3">
+                  <div className="text-xs text-gray-500 mb-1">{msg.sender}</div>
+                  <div className="bg-blue-50 rounded-lg p-2 text-sm text-gray-900">
+                    {msg.text}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                placeholder="Type a message..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Send
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

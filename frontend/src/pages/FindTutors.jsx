@@ -20,6 +20,7 @@ const TutorCard = ({
   experience,
   onEdit,
   onDelete,
+  onBookSession,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
@@ -103,6 +104,10 @@ const TutorCard = ({
         >
           <Edit className="w-4 h-4" />
           Edit
+          onClick={onBookSession}
+          className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+        >
+          Book Session
         </button>
 
         <button 
@@ -316,6 +321,7 @@ export default function FindTutorsPage() {
           <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
           <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
           <NavItem icon={<Settings />} label="Settings" />
+          <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
         </nav>
       </div>
 
@@ -409,6 +415,15 @@ export default function FindTutorsPage() {
             </button>
           </div>
         )}
+        <div className="grid grid-cols-3 gap-6 mb-8">
+          {tutors.map((tutor, index) => (
+            <TutorCard 
+              key={index} 
+              {...tutor} 
+              onBookSession={() => navigate('/book-session')}
+            />
+          ))}
+        </div>
 
         {/* Pagination */}
         {tutors.length > 0 && (
