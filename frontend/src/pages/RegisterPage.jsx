@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -27,7 +28,13 @@ const RegisterPage = () => {
 
         // Basic validation
         if (formData.password !== formData.confirmPassword) {
-            alert('Passwords do not match');
+            // Use SweetAlert2 for error message
+            Swal.fire({
+                title: 'Error!',
+                text: 'Passwords do not match',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
             setLoading(false);
             return;
         }
@@ -64,14 +71,35 @@ const RegisterPage = () => {
             const data = await response.json();
 
             if (data.success) {
-                alert('Account created successfully!');
-                navigate('/login');
+                // Use SweetAlert2 for success message
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Account created successfully!',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        navigate('/login');
+                    }
+                });
             } else {
-                alert(data.message || 'Registration failed');
+                // Use SweetAlert2 for error message
+                Swal.fire({
+                    title: 'Error!',
+                    text: data.message || 'Registration failed',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (error) {
             console.error('Registration error:', error);
-            alert('An error occurred during registration. Please try again.');
+            // Use SweetAlert2 for error message
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred during registration. Please try again.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         } finally {
             setLoading(false);
         }

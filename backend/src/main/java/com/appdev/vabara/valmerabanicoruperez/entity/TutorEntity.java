@@ -15,6 +15,13 @@ public class TutorEntity {
     private String password;
     private String expertiseSubjects;
     private Double hourlyRate;
+    private String institution;
+    private Integer rating;
+    private Integer reviews;
+    private String location;
+    private String schedule;
+    private String availability;
+    private Integer experience;
 
     public Long getTutorId() {
         return tutorId;
@@ -62,5 +69,62 @@ public class TutorEntity {
 
     public void setHourlyRate(Double hourlyRate) {
         this.hourlyRate = hourlyRate;
+    }
+
+    // Additional fields
+    public String getInstitution() {
+        return institution;
+    }
+
+    public void setInstitution(String institution) {
+        this.institution = institution;
+    }
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
+    public Integer getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(Integer reviews) {
+        this.reviews = reviews;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(String schedule) {
+        this.schedule = schedule;
+    }
+
+    public String getAvailability() {
+        return availability;
+    }
+
+    public void setAvailability(String availability) {
+        this.availability = availability;
+    }
+
+    public Integer getExperience() {
+        return experience;
+    }
+
+    public void setExperience(Integer experience) {
+        this.experience = experience;
     }
 }

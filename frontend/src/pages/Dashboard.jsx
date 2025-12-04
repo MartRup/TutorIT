@@ -16,10 +16,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Check if user is logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      navigate('/login');
-    }
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/api/auth/status', {
+          method: 'GET',
+          credentials: 'include', // Include cookies in the request
+        });
+        
+        if (!response.ok) {
+          navigate('/login');
+        }
+      } catch (error) {
+        navigate('/login');
+      }
+    };
+    
+    checkAuthStatus();
   }, [navigate]);
   return (
     <div className="flex h-screen bg-white">

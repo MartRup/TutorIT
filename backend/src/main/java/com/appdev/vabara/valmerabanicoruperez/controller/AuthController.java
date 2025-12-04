@@ -4,9 +4,13 @@ import com.appdev.vabara.valmerabanicoruperez.entity.Student;
 import com.appdev.vabara.valmerabanicoruperez.entity.TutorEntity;
 import com.appdev.vabara.valmerabanicoruperez.service.StudentService;
 import com.appdev.vabara.valmerabanicoruperez.service.TutorService;
+import com.appdev.vabara.valmerabanicoruperez.util.JwtUtil;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,10 +21,12 @@ public class AuthController {
 
     private final StudentService studentService;
     private final TutorService tutorService;
+    private final JwtUtil jwtUtil;
 
-    public AuthController(StudentService studentService, TutorService tutorService) {
+    public AuthController(StudentService studentService, TutorService tutorService, JwtUtil jwtUtil) {
         this.studentService = studentService;
         this.tutorService = tutorService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/login")
@@ -28,32 +34,39 @@ public class AuthController {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         
-        // Check if it's a student
-        // Note: In a real application, you would hash passwords and compare them securely
-        // For this example, we'll check against existing students/tutors in the database
+        // In a real application, you would hash passwords and compare them securely
+        // For this example, we'll simulate authentication
         
         Map<String, Object> response = new HashMap<>();
         
-        // Try to find a student with matching email and password
-        // In a real app, you'd have a proper authentication mechanism
         try {
-            // This is a simplified approach - in reality, you'd have a User entity or proper auth
+            // Simulate authentication - in a real app, you'd check against database
+            // For demonstration, we'll assume all logins are successful
+            String userType = "student"; // This would be determined by checking the database
+            
+            // Generate JWT token
+            String token = jwtUtil.generateToken(email, userType);
+            
+            // Create response cookie
+            ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                    .httpOnly(true)
+                    .secure(false) // Set to true in production with HTTPS
+                    .path("/")
+                    .maxAge(24 * 60 * 60) // 24 hours
+                    .sameSite("Lax")
+                    .build();
+            
             response.put("success", true);
-            response.put("userType", "student");
+            response.put("userType", userType);
             response.put("message", "Login successful");
-            return ResponseEntity.ok(response);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(response);
         } catch (Exception e) {
-            // Try tutors
-            try {
-                response.put("success", true);
-                response.put("userType", "tutor");
-                response.put("message", "Login successful");
-                return ResponseEntity.ok(response);
-            } catch (Exception ex) {
-                response.put("success", false);
-                response.put("message", "Invalid credentials");
-                return ResponseEntity.status(401).body(response);
-            }
+            response.put("success", false);
+            response.put("message", "Invalid credentials");
+            return ResponseEntity.status(401).body(response);
         }
     }
 
@@ -90,8 +103,33 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> status() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("authenticated", true);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(HttpServletResponse response) {
+        // Clear the JWT cookie
+        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(false) // Set to true in production with HTTPS
+                .path("/")
+                .maxAge(0) // Expire immediately
+                .sameSite("Lax")
+                .build();
+        
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("message", "Logged out successfully");
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(responseMap);
+    }
 }
-
 class LoginRequest {
     private String email;
     private String password;
