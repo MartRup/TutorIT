@@ -38,6 +38,11 @@ export default function SessionsPage() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [activeSession, setActiveSession] = useState(null);
+  const [isVideoOn, setIsVideoOn] = useState(true);
+  const [isMicOn, setIsMicOn] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
     fetchSessions();
@@ -88,6 +93,21 @@ export default function SessionsPage() {
     } catch (err) {
       console.error("Error saving session:", err);
     }
+  };
+
+  const handleJoinSession = (sessionData) => {
+    setActiveSession(sessionData);
+  };
+
+  const handleStartSession = (sessionData) => {
+    setActiveSession({ ...sessionData, status: "Live" });
+  };
+
+  const handleEndSession = () => {
+    setActiveSession(null);
+    setIsVideoOn(true);
+    setIsMicOn(true);
+    setIsScreenSharing(false);
   };
 
   if (loading) {
@@ -208,26 +228,8 @@ export default function SessionsPage() {
           </div>
         </main>
       </div>
-  const [activeSession, setActiveSession] = useState(null);
-  const [isVideoOn, setIsVideoOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-
-  const handleJoinSession = (sessionData) => {
-    setActiveSession(sessionData);
-  };
-
-  const handleStartSession = (sessionData) => {
-    setActiveSession({ ...sessionData, status: "Live" });
-  };
-
-  const handleEndSession = () => {
-    setActiveSession(null);
-    setIsVideoOn(true);
-    setIsMicOn(true);
-    setIsScreenSharing(false);
-  };
+    );
+  }
 
   // If there's an active session, show the session view
   if (activeSession) {
@@ -344,17 +346,17 @@ export default function SessionsPage() {
 
           {/* Tab Content */}
           <div className="space-y-8">
-            {activeTab === "active" && <ActiveUpcomingContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
-            {activeTab === "completed" && <CompletedContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
-            {activeTab === "history" && <HistoryContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
             {activeTab === "active" && (
               <ActiveUpcomingContent 
+                sessions={sessions} 
+                onEdit={handleOpenModal} 
+                onDelete={handleDeleteSession}
                 onJoinSession={handleJoinSession}
                 onStartSession={handleStartSession}
               />
             )}
-            {activeTab === "completed" && <CompletedContent />}
-            {activeTab === "history" && <HistoryContent />}
+            {activeTab === "completed" && <CompletedContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
+            {activeTab === "history" && <HistoryContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
           </div>
         </div>
       </main>
@@ -391,7 +393,7 @@ function TabButton({ active, onClick, label }) {
   );
 }
 
-function ActiveUpcomingContent({ sessions, onEdit, onDelete }) {
+function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onStartSession }) {
   // Filter sessions based on status
   const activeSessions = sessions.filter(session => 
     session.status === "active" || session.status === "live"
@@ -400,8 +402,6 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete }) {
   const upcomingSessions = sessions.filter(session => 
     session.status === "scheduled" || session.status === "upcoming"
   );
-
-function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
   return (
     <>
       {/* Active Sessions */}
@@ -420,6 +420,13 @@ function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
                 session={session}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                tutorName={session.tutorName}
+                subject={session.subject}
+                topic={session.topic}
+                dateTime={session.dateTime}
+                duration={session.duration}
+                status={session.status}
+                isScheduled={false}
               />
             ))
           ) : (
@@ -435,6 +442,7 @@ function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
             duration="45 min"
             status="Live"
             onJoinSession={onJoinSession}
+            isScheduled={false}
           />
           <ActiveSessionCard 
             tutorName="Mike Chen"
@@ -465,6 +473,11 @@ function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
                 session={session}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                tutorName={session.tutorName}
+                subject={session.subject}
+                topic={session.topic}
+                dateTime={session.dateTime}
+                duration={session.duration}
               />
             ))
           ) : (
@@ -478,20 +491,28 @@ function ActiveUpcomingContent({ onJoinSession, onStartSession }) {
   );
 }
 
-function ActiveSessionCard({ session, onEdit, onDelete }) {
-  const { sessionId, tutorName, subject, topic, dateTime, duration, status, isScheduled } = session;
-function ActiveSessionCard({ tutorName, subject, topic, startTime, duration, status, isScheduled, onJoinSession, onStartSession }) {
+function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topic, startTime, duration, status, isScheduled, onJoinSession, onStartSession }) {
+  const { sessionId, tutorName: sessionTutorName, subject: sessionSubject, topic: sessionTopic, dateTime, duration: sessionDuration, status: sessionStatus, isScheduled: sessionIsScheduled } = session || {};
+  
+  // Use props if session data is not provided
+  const displayName = tutorName || sessionTutorName || "Unknown Tutor";
+  const displaySubject = subject || sessionSubject || "Unknown Subject";
+  const displayTopic = topic || sessionTopic || "No topic specified";
+  const displayDuration = duration || sessionDuration || 0;
+  const displayStatus = status || sessionStatus || "";
+  const displayIsScheduled = isScheduled !== undefined ? isScheduled : sessionIsScheduled || false;
+  
   const handleAction = () => {
     const sessionData = {
-      tutorName,
-      subject,
-      topic,
+      tutorName: displayName,
+      subject: displaySubject,
+      topic: displayTopic,
       startTime,
-      duration,
-      status
+      duration: displayDuration,
+      status: displayStatus
     };
     
-    if (isScheduled) {
+    if (displayIsScheduled) {
       onStartSession?.(sessionData);
     } else {
       onJoinSession?.(sessionData);
@@ -506,28 +527,28 @@ function ActiveSessionCard({ tutorName, subject, topic, startTime, duration, sta
             <User className="w-6 h-6 text-gray-500" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{tutorName || "Unknown Tutor"}</h3>
-            <p className="text-sm text-blue-600">{subject || "Unknown Subject"}</p>
+            <h3 className="font-semibold text-gray-900">{displayName}</h3>
+            <p className="text-sm text-blue-600">{displaySubject}</p>
           </div>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          isScheduled ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+          displayIsScheduled ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
         }`}>
-          {status}
+          {displayStatus}
         </span>
       </div>
 
       <div className="mb-4">
-        <h4 className="font-medium text-gray-900">{topic || "No topic specified"}</h4>
+        <h4 className="font-medium text-gray-900">{displayTopic}</h4>
         <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            Started at {dateTime ? new Date(dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}
-            {isScheduled ? `Scheduled for ${startTime}` : `Started at ${startTime}`}
+            {dateTime ? new Date(dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}
+            {displayIsScheduled ? `Scheduled for ${startTime}` : `Started at ${startTime || "N/A"}`}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            {duration || 0} min
+            {displayDuration} min
           </span>
         </div>
       </div>
@@ -537,28 +558,39 @@ function ActiveSessionCard({ tutorName, subject, topic, startTime, duration, sta
           onClick={handleAction}
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
-          {isScheduled ? <Play className="w-4 h-4" /> : null}
-          {isScheduled ? "Start Session" : "Join Session"}
+          {displayIsScheduled ? <Play className="w-4 h-4" /> : null}
+          {displayIsScheduled ? "Start Session" : "Join Session"}
         </button>
-        <button 
-          onClick={() => onEdit(session)}
-          className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
-        >
-          <Edit className="w-5 h-5" />
-        </button>
-        <button 
-          onClick={() => onDelete(sessionId)}
-          className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-        >
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {session && (
+          <button 
+            onClick={() => onEdit(session)}
+            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+        )}
+        {session && sessionId && (
+          <button 
+            onClick={() => onDelete(sessionId)}
+            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-function UpcomingSessionCard({ session, onEdit, onDelete }) {
-  const { sessionId, tutorName, subject, topic, dateTime, duration } = session;
+function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, topic, dateTime, duration }) {
+  const { sessionId, tutorName: sessionTutorName, subject: sessionSubject, topic: sessionTopic, dateTime: sessionDateTime, duration: sessionDuration } = session || {};
+  
+  // Use props if session data is not provided
+  const displayName = tutorName || sessionTutorName || "Unknown Tutor";
+  const displaySubject = subject || sessionSubject || "Unknown Subject";
+  const displayTopic = topic || sessionTopic || "No topic specified";
+  const displayDateTime = dateTime || sessionDateTime;
+  const displayDuration = duration || sessionDuration || 0;
 
   return (
     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -567,28 +599,32 @@ function UpcomingSessionCard({ session, onEdit, onDelete }) {
           <User className="w-6 h-6 text-gray-500" />
         </div>
         <div>
-          <h3 className="font-semibold text-gray-900">{tutorName || "Unknown Tutor"}</h3>
-          <p className="text-sm text-gray-600">{subject || "Unknown Subject"}</p>
-          <p className="text-sm font-medium text-gray-900 mt-1">{topic || "No topic specified"}</p>
+          <h3 className="font-semibold text-gray-900">{displayName}</h3>
+          <p className="text-sm text-gray-600">{displaySubject}</p>
+          <p className="text-sm font-medium text-gray-900 mt-1">{displayTopic}</p>
         </div>
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <p className="text-sm font-medium text-gray-900">{dateTime ? new Date(dateTime).toLocaleDateString() : "N/A"}, {dateTime ? new Date(dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}</p>
-          <p className="text-sm text-gray-500">{duration || 0} min</p>
+          <p className="text-sm font-medium text-gray-900">{displayDateTime ? new Date(displayDateTime).toLocaleDateString() : "N/A"}, {displayDateTime ? new Date(displayDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}</p>
+          <p className="text-sm text-gray-500">{displayDuration} min</p>
         </div>
-        <button 
-          onClick={() => onEdit(session)}
-          className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
-        >
-          <Edit className="w-5 h-5" />
-        </button>
-        <button 
-          onClick={() => onDelete(sessionId)}
-          className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-        >
-          <MoreHorizontal className="w-5 h-5" />
-        </button>
+        {session && (
+          <button 
+            onClick={() => onEdit(session)}
+            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+        )}
+        {session && sessionId && (
+          <button 
+            onClick={() => onDelete(sessionId)}
+            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
+          >
+            <MoreHorizontal className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -779,7 +815,6 @@ function HistoryContent({ sessions, onEdit, onDelete }) {
       )}
     </section>
   );
-}
 }
 
 function SessionView({ 

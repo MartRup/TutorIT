@@ -108,7 +108,7 @@ export default function StudentsPage() {
               <User className="h-5 w-5" />
               Students
             </button>
-            <NavItem icon={<Settings />} label="Settings" />
+            <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
           </nav>
         </div>
 
@@ -136,7 +136,7 @@ export default function StudentsPage() {
             <User className="h-5 w-5" />
             Students
           </button>
-          <NavItem icon={<Settings />} label="Settings" />
+          <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
         </nav>
       </div>
 

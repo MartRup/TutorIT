@@ -23,7 +23,9 @@ public class SecurityConfig {
         http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/tutoring-sessions/**", "/api/tutors/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register/**", "/api/auth/logout",
+                                "/api/tutoring-sessions/**", "/api/tutors/**")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
