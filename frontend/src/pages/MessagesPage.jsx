@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getConversations, getMessages, sendMessage } from "../services/messageService";
+import tutorService from "../services/tutorService";
 
 // --- Sidebar Component (Duplicated for now) ---
 function NavItem({ icon, label, onClick, isActive }) {
@@ -36,17 +37,37 @@ function NavItem({ icon, label, onClick, isActive }) {
 export default function MessagesPage() {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
+  const [tutors, setTutors] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [currentMessages, setCurrentMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  // Load conversations on component mount
+  // Load conversations and tutors on component mount
   useEffect(() => {
-    const loadConversations = async () => {
+    const loadData = async () => {
       setLoading(true);
       try {
+        // Load tutors first
+        const tutorData = await tutorService.getTutors();
+        const transformedTutors = tutorData.map(tutor => ({
+          tutorId: tutor.tutorId,
+          name: tutor.name || "Unknown Tutor",
+          email: tutor.email,
+          institution: tutor.institution || "Not specified",
+          rating: tutor.rating || 0,
+          reviews: tutor.reviews || 0,
+          hourly: tutor.hourlyRate || 0,
+          subjects: tutor.expertiseSubjects ? tutor.expertiseSubjects.split(',').map(s => s.trim()) : [],
+          location: tutor.location || "Not specified",
+          schedule: tutor.schedule || "Not specified",
+          availability: tutor.availability || "Unknown",
+          experience: tutor.experience || 0,
+        }));
+        setTutors(transformedTutors);
+
+        // Then load conversations
         const result = await getConversations();
         if (result.success) {
           setConversations(result.data);
@@ -55,13 +76,13 @@ export default function MessagesPage() {
           }
         }
       } catch (error) {
-        console.error("Failed to load conversations:", error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadConversations();
+    loadData();
   }, []);
 
   // Load messages when conversation changes
@@ -154,37 +175,53 @@ export default function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {conversations.map((conv) => (
-              <div 
-                key={conv.id}
-                onClick={() => setSelectedConversation(conv.id)}
-                className={`p-4 hover:bg-white cursor-pointer transition-colors border-l-4 ${selectedConversation === conv.id ? 'bg-white border-blue-500' : 'border-transparent'}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="font-semibold text-gray-600">{conv.name.charAt(0)}</span>
+            {conversations.map((conv) => {
+              // Find matching tutor for this conversation
+              const matchingTutor = tutors.find(tutor => tutor.tutorId === conv.tutorId);
+              
+              return (
+                <div 
+                  key={conv.id}
+                  onClick={() => setSelectedConversation(conv.id)}
+                  className={`p-4 hover:bg-white cursor-pointer transition-colors border-l-4 ${selectedConversation === conv.id ? 'bg-white border-blue-500' : 'border-transparent'}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="font-semibold text-gray-600">{conv.name.charAt(0)}</span>
+                      </div>
+                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${conv.status.includes('Online') ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                     </div>
-                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${conv.status.includes('Online') ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-1">
-                      <h3 className="font-semibold text-gray-900 truncate">{conv.name}</h3>
-                      <span className="text-xs text-gray-500">{conv.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{conv.role}</span>
-                      {conv.unread > 0 && (
-                        <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
-                          {conv.unread}
-                        </span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h3 className="font-semibold text-gray-900 truncate">{conv.name}</h3>
+                        <span className="text-xs text-gray-500">{conv.time}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{conv.role}</span>
+                        {conv.unread > 0 && (
+                          <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                            {conv.unread}
+                          </span>
+                        )}
+                        {/* Display tutor rating if available */}
+                        {matchingTutor && matchingTutor.rating > 0 && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-yellow-500">★</span>
+                            <span className="text-xs text-gray-600">{matchingTutor.rating} ({matchingTutor.reviews})</span>
+                          </div>
+                        )}
+                        {/* Display hourly rate if available */}
+                        {matchingTutor && (
+                          <span className="text-xs text-blue-600 font-medium">${matchingTutor.hourly}/hr</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -206,6 +243,26 @@ export default function MessagesPage() {
                     <span className={`w-2 h-2 rounded-full ${selectedConvData?.status.includes('Online') ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                     <span>{selectedConvData?.role} • {selectedConvData?.status}</span>
                   </div>
+                  {/* Display tutor details if available */}
+                  {selectedConvData && (() => {
+                    const matchingTutor = tutors.find(tutor => tutor.tutorId === selectedConvData.tutorId);
+                    return matchingTutor ? (
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                        <span>{matchingTutor.institution}</span>
+                        <span>•</span>
+                        <span>${matchingTutor.hourly}/hr</span>
+                        {matchingTutor.rating > 0 && (
+                          <>
+                            <span>•</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-yellow-500">★</span>
+                              <span>{matchingTutor.rating} ({matchingTutor.reviews} reviews)</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </div>
               <div className="flex items-center gap-6 text-gray-500">
