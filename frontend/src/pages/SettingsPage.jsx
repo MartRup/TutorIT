@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
+import Header from "../components/Header"; // Import the common Header component
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -193,66 +194,11 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-56 border-r border-gray-200 p-6">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4">
-          <NavItem 
-            icon={<Home />} 
-            label="Dashboard" 
-            onClick={() => navigate('/dashboard')} 
-          />
-          <NavItem 
-            icon={<Play />} 
-            label="Sessions" 
-            onClick={() => navigate('/sessions')} 
-          />
-          <NavItem 
-            icon={<Users />} 
-            label="Find Tutors" 
-            onClick={() => navigate('/find-tutors')} 
-          />
-          <NavItem 
-            icon={<BookOpen />} 
-            label="Subjects" 
-            onClick={() => navigate('/subjects')} 
-          />
-          <NavItem 
-            icon={<MessageCircle />} 
-            label="Messages" 
-            onClick={() => navigate('/messages')} 
-          />
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-            <Settings className="h-5 w-5" />
-            Settings
-          </button>
-        </nav>
-      </aside>
+    <div className="min-h-screen bg-white">
+      <Header /> {/* Use the common Header component */}
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 px-8 py-4">
-          <h1 className="text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search tutors, subjects, and sessions"
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 w-80"
-              />
-            </div>
-          </div>
-        </header>
+      <main className="flex-1 flex flex-col pt-20">
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-8">
