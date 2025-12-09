@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   User,
@@ -18,6 +16,7 @@ import {
   Home
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import userService from "../services/userService";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -32,6 +31,35 @@ export default function SettingsPage() {
   });
   const [subjects, setSubjects] = useState(["Mathematics", "Science"]);
   const [newSubject, setNewSubject] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  // Load user data when component mounts
+  useEffect(() => {
+    loadUserData();
+  }, []);
+
+  const loadUserData = async () => {
+    try {
+      // In a real implementation, this would fetch the current user's data
+      // For now, we'll use mock data
+      const mockUserData = {
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        phoneNumber: "+1234567890",
+        bio: "Experienced tutor with 5 years of teaching mathematics and science.",
+        education: "Master's in Education",
+        yearsOfExperience: "5"
+      };
+      
+      setFormData(mockUserData);
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      setErrorMessage("Failed to load user data");
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,12 +85,32 @@ export default function SettingsPage() {
     if (file) {
       // Handle file upload logic here
       console.log("File selected:", file.name);
+      setSuccessMessage("Profile picture updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
     }
   };
 
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...", formData, subjects);
+  const handleSave = async () => {
+    setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+    
+    try {
+      // In a real implementation, this would save to the backend
+      // For now, we'll simulate a successful save
+      console.log("Saving changes...", formData, subjects);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSuccessMessage("Changes saved successfully!");
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Error saving changes:", error);
+      setErrorMessage("Failed to save changes. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -139,6 +187,19 @@ export default function SettingsPage() {
               <h2 className="text-3xl font-bold mb-2">Settings</h2>
               <p className="text-gray-600">Manage your account settings and tutoring preferences.</p>
             </div>
+
+            {/* Success/Error Messages */}
+            {successMessage && (
+              <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+                {successMessage}
+              </div>
+            )}
+            
+            {errorMessage && (
+              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+                {errorMessage}
+              </div>
+            )}
 
             {/* Main Container */}
             <div className="bg-blue-50 rounded-xl p-8 space-y-8">
@@ -335,15 +396,26 @@ export default function SettingsPage() {
               <button
                 onClick={handleCancel}
                 className="px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition-colors"
+                disabled={loading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                disabled={loading}
               >
-                <Save className="h-4 w-4" />
-                Save Changes
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -364,4 +436,3 @@ function NavItem({ icon, label, onClick }) {
     </div>
   );
 }
-

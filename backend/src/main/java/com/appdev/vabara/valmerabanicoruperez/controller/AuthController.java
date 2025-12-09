@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -103,11 +104,53 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> response = new HashMap<>();
         response.put("authenticated", true);
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/current-user")
+    public ResponseEntity<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Extract user information from JWT token
+            String token = jwtUtil.extractTokenFromRequest(request);
+            if (token != null && jwtUtil.validateToken(token)) {
+                String email = jwtUtil.extractEmail(token);
+                String userType = jwtUtil.extractUserType(token);
+                
+                response.put("email", email);
+                response.put("userType", userType);
+                response.put("authenticated", true);
+                
+                // In a real implementation, you would fetch the full user object from the database
+                // For now, we'll return mock data
+                Map<String, Object> user = new HashMap<>();
+                user.put("id", 1L);
+                user.put("firstName", "John");
+                user.put("lastName", "Doe");
+                user.put("email", email);
+                user.put("phoneNumber", "+1234567890");
+                user.put("bio", "Experienced tutor with 5 years of teaching mathematics and science.");
+                user.put("education", "Master's in Education");
+                user.put("yearsOfExperience", 5);
+                user.put("subjects", new String[]{"Mathematics", "Science"});
+                
+                response.put("user", user);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("authenticated", false);
+                response.put("message", "Invalid or missing token");
+                return ResponseEntity.status(401).body(response);
+            }
+        } catch (Exception e) {
+            response.put("authenticated", false);
+            response.put("message", "Error fetching user data: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
     
     @PostMapping("/logout")
@@ -130,6 +173,7 @@ public class AuthController {
                 .body(responseMap);
     }
 }
+
 class LoginRequest {
     private String email;
     private String password;

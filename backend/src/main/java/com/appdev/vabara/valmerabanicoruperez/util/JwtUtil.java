@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtUtil {
@@ -29,6 +30,11 @@ public class JwtUtil {
     // Retrieve expiration date from jwt token
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
+    }
+
+    // Retrieve user type from jwt token
+    public String getUserTypeFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("userType", String.class));
     }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
@@ -70,8 +76,54 @@ public class JwtUtil {
     }
 
     // Validate token
-    public Boolean validateToken(String token, String username) {
-        final String tokenUsername = getUsernameFromToken(token);
-        return (tokenUsername.equals(username) && !isTokenExpired(token));
+    public Boolean validateToken(String token) {
+        try {
+            getAllClaimsFromToken(token);
+            return !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Extract token from request
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        
+        // Also check for token in cookies
+        String jwtCookie = extractTokenFromCookies(request);
+        if (jwtCookie != null) {
+            return jwtCookie;
+        }
+        
+        return null;
+    }
+    
+    // Extract token from cookies
+    private String extractTokenFromCookies(HttpServletRequest request) {
+        // This is a simplified approach. In a real application, you might want to use 
+        // a more robust cookie parsing mechanism.
+        String cookieHeader = request.getHeader("Cookie");
+        if (cookieHeader != null) {
+            String[] cookies = cookieHeader.split("; ");
+            for (String cookie : cookies) {
+                if (cookie.startsWith("jwt=")) {
+                    return cookie.substring(4); // Length of "jwt="
+                }
+            }
+        }
+        return null;
+    }
+    
+    // Extract email from token
+    public String extractEmail(String token) {
+        return getUsernameFromToken(token);
+    }
+    
+    // Extract user type from token
+    public String extractUserType(String token) {
+        return getUserTypeFromToken(token);
     }
 }
