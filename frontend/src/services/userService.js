@@ -20,7 +20,7 @@ class UserService {
         throw new Error('User not authenticated');
       }
       
-      return data.user;
+      return data;
     } catch (error) {
       console.error('Error fetching current user:', error);
       throw error;
@@ -63,6 +63,36 @@ class UserService {
       return { success: true };
     } catch (error) {
       console.error(`Error updating subjects for user with id ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  async uploadProfilePicture(userId, file) {
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      // This endpoint would need to be implemented in the backend
+      const response = await fetch(`${API_BASE_URL}/api/students/${userId}/profile-picture`, {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error uploading profile picture for user with id ${userId}:`, error);
       throw error;
     }
   }

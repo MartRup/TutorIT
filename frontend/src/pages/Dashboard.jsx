@@ -1,15 +1,9 @@
 "use client";
 
-import {
-  Bell,
-  User,
-  Play,
-  Users,
-  MessageCircle,
-  Settings
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Play, Users, BookOpen, Star, Clock } from "lucide-react";
+import Layout from "../components/Layout";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -34,33 +28,8 @@ export default function Dashboard() {
     checkAuthStatus();
   }, [navigate]);
   return (
-    <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-56 border-r border-gray-200 p-6">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4">
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white">
-            Dashboard
-          </button>
-
-          <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
-          <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
-          <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
-          <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
-          <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
-        </nav>
-      </aside>
-
+    <Layout activePage="dashboard">
       {/* Main section */}
-      <main className="flex-1">
-        <header className="flex items-center justify-end border-b border-gray-200 px-8 py-4 gap-6">
-          <Bell className="h-6 w-6 text-gray-700" />
-          <User className="h-6 w-6 text-gray-700" />
-        </header>
 
         <div className="p-8">
           <div className="mb-8">
@@ -70,10 +39,10 @@ export default function Dashboard() {
 
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4 mb-8">
-            <Stat label="Total Sessions" icon={<Clock />} />
+            <Stat label="Total Sessions" icon={<CustomClock />} />
             <Stat label="Active Tutors" icon={<Users />} />
-            <Stat label="Subjects Covered" icon={<BookOpen />} />
-            <Stat label="Average Rating" icon={<Star />} />
+            <Stat label="Subjects Covered" icon={<CustomBookOpen />} />
+            <Stat label="Average Rating" icon={<CustomStar />} />
           </div>
 
           {/* Active session */}
@@ -99,21 +68,9 @@ export default function Dashboard() {
             </div>
           </section>
         </div>
-      </main>
-    </div>
+      </Layout>
   );
-}
-
-/* Components that feel more hand-written */
-
-function NavItem({ icon, label, onClick }) {
-  return (
-    <div onClick={onClick} className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer">
-      {icon}
-      <span className="text-lg">{label}</span>
-    </div>
-  );
-}
+};
 
 function Stat({ label, icon }) {
   return (
@@ -139,7 +96,7 @@ function Tutor({ name, subject }) {
 
 /* Icons */
 
-function Clock({ className }) {
+function CustomClock({ className }) {
   return (
     <svg className={className + " h-4 w-4"} viewBox="0 0 24 24" stroke="currentColor" fill="none">
       <circle cx="12" cy="12" r="9" />
@@ -148,7 +105,7 @@ function Clock({ className }) {
   );
 }
 
-function BookOpen({ className }) {
+function CustomBookOpen({ className }) {
   return (
     <svg className={className + " h-4 w-4"} viewBox="0 0 24 24" stroke="currentColor" fill="none">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
@@ -157,7 +114,7 @@ function BookOpen({ className }) {
   );
 }
 
-function Star({ className }) {
+function CustomStar({ className }) {
   return (
     <svg className={className + " h-4 w-4"} viewBox="0 0 24 24" stroke="currentColor" fill="none">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />

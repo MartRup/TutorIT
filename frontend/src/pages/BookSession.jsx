@@ -2,22 +2,17 @@
 
 import { useState } from "react";
 import {
-  Bell,
-  User,
-  Play,
-  Users,
-  MessageCircle,
-  Settings,
-  LayoutDashboard,
-  BookOpen,
   ArrowLeft,
   Calendar,
   Clock,
   ChevronDown,
   Radio,
-  Star
+  Star,
+  Users,
+  User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Layout from "../components/Layout";
 
 export default function BookSession() {
   const navigate = useNavigate();
@@ -47,57 +42,8 @@ export default function BookSession() {
   const total = calculateTotal();
 
   return (
-    <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-56 border-r border-gray-200 p-6">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4">
-          <NavItem 
-            icon={<LayoutDashboard />} 
-            label="Dashboard" 
-            onClick={() => navigate('/dashboard')} 
-          />
-          <NavItem 
-            icon={<Play />} 
-            label="Sessions" 
-            onClick={() => navigate('/sessions')} 
-          />
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-            <Users className="h-5 w-5" />
-            Find Tutors
-          </button>
-          <NavItem 
-            icon={<BookOpen />} 
-            label="Subjects" 
-            onClick={() => navigate('/subjects')} 
-          />
-          <NavItem 
-            icon={<MessageCircle />} 
-            label="Messages" 
-            onClick={() => navigate('/messages')} 
-          />
-          <NavItem 
-            icon={<Settings />} 
-            label="Settings" 
-            onClick={() => navigate('/settings')}
-          />
-        </nav>
-      </aside>
-
+    <Layout activePage="find-tutors">
       {/* Main Content */}
-      <main className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 px-8 py-4">
-          <h1 className="text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-          <Bell className="h-6 w-6 text-gray-700 cursor-pointer hover:text-gray-900" />
-        </header>
 
         {/* Content Area */}
         <div className="flex-1 flex overflow-y-auto">
@@ -287,20 +233,7 @@ export default function BookSession() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
-  );
-}
-
-function NavItem({ icon, label, onClick }) {
-  return (
-    <div 
-      onClick={onClick} 
-      className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
-    >
-      {icon}
-      <span className="text-lg">{label}</span>
-    </div>
+      </Layout>
   );
 }
 
