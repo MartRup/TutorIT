@@ -46,11 +46,7 @@ function App() {
               <StudentsPage />
             </ProtectedRoute>
           } />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/find-tutors" element={<FindTutorsPage />} />
           <Route path="/book-session" element={<BookSession />} />
-          <Route path="/messages" element={<MessagesPage />} />
-          <Route path="/sessions" element={<SessionsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
