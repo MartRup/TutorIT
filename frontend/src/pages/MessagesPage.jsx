@@ -2,37 +2,19 @@
 
 import { useState, useEffect } from "react";
 import {
-  Bell,
-  User,
-  Play,
-  Users,
-  MessageCircle,
-  Settings,
-  LayoutDashboard,
   Search,
   Phone,
   Video,
   MoreVertical,
   Paperclip,
   Smile,
-  Send
+  Send,
+  MessageCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getConversations, getMessages, sendMessage } from "../services/messageService";
 import tutorService from "../services/tutorService";
-
-// --- Sidebar Component (Duplicated for now) ---
-function NavItem({ icon, label, onClick, isActive }) {
-  return (
-    <div 
-      onClick={onClick} 
-      className={`flex items-center gap-3 px-4 py-2 cursor-pointer ${isActive ? 'text-blue-600 bg-blue-50 rounded-lg' : 'text-gray-800 hover:text-gray-600'}`}
-    >
-      {icon}
-      <span className={`text-lg ${isActive ? 'font-semibold' : ''}`}>{label}</span>
-    </div>
-  );
-}
+import Layout from "../components/Layout";
 
 export default function MessagesPage() {
   const navigate = useNavigate();
@@ -125,38 +107,16 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-white">
+      <Layout activePage="messages">
         <div className="w-full flex items-center justify-center">
           <div className="text-lg text-gray-500">Loading messages...</div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex h-screen bg-white">
-      {/* Sidebar */}
-      <aside className="w-60 border-r border-gray-200 p-6 flex flex-col">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4 flex-1">
-          <NavItem icon={<LayoutDashboard />} label="Dashboard" onClick={() => navigate('/dashboard')} />
-          <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
-          <NavItem icon={<Users />} label="Find Tutors" onClick={() => navigate('/find-tutors')} />
-          
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-            <MessageCircle className="h-5 w-5" />
-            Messages
-          </button>
-          
-          <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
-          <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
-        </nav>
-      </aside>
-
+    <Layout activePage="messages">
       {/* Messages Layout */}
       <div className="flex flex-1 overflow-hidden">
         
@@ -343,6 +303,6 @@ export default function MessagesPage() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }

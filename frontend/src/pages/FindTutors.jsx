@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell, User, BookOpen, Play, Users, MessageCircle, Settings, LayoutDashboard, Plus, Edit, Trash2 } from "lucide-react"
+import { User, BookOpen, Plus, Edit, Trash2, Bell, Users } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import tutorService from "../services/tutorService"
 import TutorModal from "./components/TutorModal"
+import Layout from "../components/Layout"
 
 const TutorCard = ({
   tutorId,
@@ -131,15 +132,6 @@ const TutorCard = ({
   )
 }
 
-function NavItem({ icon, label, onClick }) {
-  return (
-    <div onClick={onClick} className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer">
-      {icon}
-      <span className="text-lg">{label}</span>
-    </div>
-  );
-}
-
 export default function FindTutorsPage() {
   const [tutors, setTutors] = useState([])
   const [loading, setLoading] = useState(true)
@@ -221,67 +213,23 @@ export default function FindTutorsPage() {
 
   if (loading) {
     return (
-      <div className="flex bg-gray-50 min-h-screen">
-        {/* Sidebar */}
-        <div className="w-60 bg-white border-r border-gray-200 p-6">
-          <h1 className="mb-8 text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-
-          <nav className="space-y-4">
-            <NavItem icon={<LayoutDashboard />} label="Dashboard" onClick={() => navigate('/dashboard')} />
-            <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
-
-            <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-              <Users className="h-5 w-5" />
-              Find Tutors
-            </button>
-
-            <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
-            <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
-            <NavItem icon={<Settings />} label="Settings" />
-          </nav>
-        </div>
-
+      <Layout activePage="find-tutors">
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
             <p className="text-gray-600">Loading tutors...</p>
           </div>
         </div>
-      </div>
+      </Layout>
     )
   }
 
   if (error) {
     return (
-      <div className="flex bg-gray-50 min-h-screen">
-        {/* Sidebar */}
-        <div className="w-60 bg-white border-r border-gray-200 p-6">
-          <h1 className="mb-8 text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-
-          <nav className="space-y-4">
-            <NavItem icon={<LayoutDashboard />} label="Dashboard" onClick={() => navigate('/dashboard')} />
-            <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
-
-            <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-              <Users className="h-5 w-5" />
-              Find Tutors
-            </button>
-
-            <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
-            <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
-            <NavItem icon={<Settings />} label="Settings" />
-          </nav>
-        </div>
-
+      <Layout activePage="find-tutors">
         {/* Main Content */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -298,12 +246,12 @@ export default function FindTutorsPage() {
             </button>
           </div>
         </div>
-      </div>
+      </Layout>
     )
   }
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
+    <Layout activePage="find-tutors">
       {isModalOpen && (
         <TutorModal
           tutor={selectedTutor}
@@ -311,30 +259,9 @@ export default function FindTutorsPage() {
           onSave={handleSaveTutor}
         />
       )}
-      {/* Sidebar */}
-      <div className="w-60 bg-white border-r border-gray-200 p-6">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4">
-          <NavItem icon={<LayoutDashboard />} label="Dashboard" onClick={() => navigate('/dashboard')} />
-          <NavItem icon={<Play />} label="Sessions" onClick={() => navigate('/sessions')} />
-
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-            <Users className="h-5 w-5" />
-            Find Tutors
-          </button>
-
-          <NavItem icon={<MessageCircle />} label="Messages" onClick={() => navigate('/messages')} />
-          <NavItem icon={<User />} label="Students" onClick={() => navigate('/students')} />
-          <NavItem icon={<Settings />} label="Settings" onClick={() => navigate('/settings')} />
-        </nav>
-      </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8">
+      <div className="p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div></div>
@@ -451,6 +378,6 @@ export default function FindTutorsPage() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   )
 }

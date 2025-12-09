@@ -2,13 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Bell,
-  User,
-  Play,
-  Users,
-  MessageCircle,
-  Settings,
-  LayoutDashboard,
   Calendar,
   Clock,
   MoreHorizontal,
@@ -24,11 +17,15 @@ import {
   Phone,
   X,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Bell,
+  User,
+  Play
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import sessionService from "../services/sessionService";
 import SessionModal from "./components/SessionModal";
+import Layout from "../components/Layout";
 
 export default function SessionsPage() {
   const navigate = useNavigate();
@@ -112,105 +109,23 @@ export default function SessionsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen bg-white">
-        {/* Sidebar */}
-        <aside className="w-56 border-r border-gray-200 p-6 flex flex-col">
-          <h1 className="mb-8 text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-
-          <nav className="space-y-4 flex-1">
-            <NavItem 
-              icon={<LayoutDashboard />} 
-              label="Dashboard" 
-              onClick={() => navigate('/dashboard')} 
-            />
-            
-            <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-              <Play className="h-5 w-5" />
-              Sessions
-            </button>
-            
-            <NavItem 
-              icon={<Users />} 
-              label="Find Tutors" 
-              onClick={() => navigate('/find-tutors')} 
-            />
-            <NavItem 
-              icon={<MessageCircle />} 
-              label="Messages" 
-              onClick={() => navigate('/messages')} 
-            />
-            <NavItem 
-              icon={<User />} 
-              label="Students" 
-              onClick={() => navigate('/students')} 
-            />
-            <NavItem 
-              icon={<Settings />} 
-              label="Settings" 
-            />
-          </nav>
-        </aside>
-
+      <Layout activePage="sessions">
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
             <p className="text-gray-600">Loading sessions...</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-screen bg-white">
-        {/* Sidebar */}
-        <aside className="w-56 border-r border-gray-200 p-6 flex flex-col">
-          <h1 className="mb-8 text-2xl font-bold">
-            <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
-          </h1>
-
-          <nav className="space-y-4 flex-1">
-            <NavItem 
-              icon={<LayoutDashboard />} 
-              label="Dashboard" 
-              onClick={() => navigate('/dashboard')} 
-            />
-            
-            <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-              <Play className="h-5 w-5" />
-              Sessions
-            </button>
-            
-            <NavItem 
-              icon={<Users />} 
-              label="Find Tutors" 
-              onClick={() => navigate('/find-tutors')} 
-            />
-            <NavItem 
-              icon={<MessageCircle />} 
-              label="Messages" 
-              onClick={() => navigate('/messages')} 
-            />
-            <NavItem 
-              icon={<User />} 
-              label="Students" 
-              onClick={() => navigate('/students')} 
-            />
-            <NavItem 
-              icon={<Settings />} 
-              label="Settings" 
-            />
-          </nav>
-        </aside>
-
+      <Layout activePage="sessions">
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -226,8 +141,8 @@ export default function SessionsPage() {
               Try Again
             </button>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -250,7 +165,7 @@ export default function SessionsPage() {
   }
 
   return (
-    <div className="flex h-screen bg-white">
+    <Layout activePage="sessions">
       {isModalOpen && (
         <SessionModal
           session={selectedSession}
@@ -258,50 +173,9 @@ export default function SessionsPage() {
           onSave={handleSaveSession}
         />
       )}
-      {/* Sidebar - Duplicated from Dashboard/FindTutors */}
-      <aside className="w-56 border-r border-gray-200 p-6 flex flex-col">
-        <h1 className="mb-8 text-2xl font-bold">
-          <span className="text-blue-600">Tutor</span>
-          <span>IT</span>
-        </h1>
-
-        <nav className="space-y-4 flex-1">
-          <NavItem 
-            icon={<LayoutDashboard />} 
-            label="Dashboard" 
-            onClick={() => navigate('/dashboard')} 
-          />
-          
-          <button className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-green-500 px-4 py-2 text-left font-semibold text-white flex items-center gap-3">
-            <Play className="h-5 w-5" />
-            Sessions
-          </button>
-          
-          <NavItem 
-            icon={<Users />} 
-            label="Find Tutors" 
-            onClick={() => navigate('/find-tutors')} 
-          />
-          <NavItem 
-            icon={<MessageCircle />} 
-            label="Messages" 
-            onClick={() => navigate('/messages')} 
-          />
-          <NavItem 
-            icon={<User />} 
-            label="Students" 
-            onClick={() => navigate('/students')} 
-          />
-          <NavItem 
-            icon={<Settings />} 
-            label="Settings" 
-            onClick={() => navigate('/settings')}
-          />
-        </nav>
-      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto">
         <header className="flex items-center justify-between border-b border-gray-200 px-8 py-4 gap-6 sticky top-0 bg-white z-10">
           <div>
             <h1 className="text-2xl font-bold">Sessions</h1>
@@ -359,8 +233,8 @@ export default function SessionsPage() {
             {activeTab === "history" && <HistoryContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }
 
@@ -978,8 +852,10 @@ function SessionView({
           </div>
         </div>
 
-        {/* Chat Sidebar */}
-        <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
+        {/* Main Content and Chat Container */}
+        <div className="flex flex-1">
+          {/* Chat Sidebar */}
+          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Chat</h3>
           </div>
@@ -1019,5 +895,6 @@ function SessionView({
         </div>
       </div>
     </div>
+  </div>
   );
 }

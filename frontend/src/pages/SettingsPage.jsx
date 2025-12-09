@@ -1,23 +1,14 @@
 import { useState, useEffect } from "react";
 import {
-  Bell,
   User,
-  Play,
-  Users,
-  MessageCircle,
-  Settings,
-  LayoutDashboard,
-  BookOpen,
-  Search,
   Camera,
   Save,
   X,
-  Plus,
-  Home
+  Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
-import Header from "../components/Header"; // Import the common Header component
+import Layout from "../components/Layout";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -194,11 +185,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header /> {/* Use the common Header component */}
-
+    <Layout activePage="settings">
       {/* Main Content */}
-      <main className="flex-1 flex flex-col pt-20">
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto p-8">
@@ -444,8 +432,7 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </Layout>
   );
 }
 
