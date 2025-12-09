@@ -5,7 +5,6 @@ import com.appdev.vabara.valmerabanicoruperez.repository.TutoringSessionReposito
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TutoringSessionService {
