@@ -98,25 +98,34 @@ const TutorCard = ({
 
       {/* Action Buttons */}
       <div className="flex gap-3">
-        <button 
-          onClick={() => onEdit({ tutorId, name, institution, rating, reviews, hourly, subjects, location, schedule, availability, experience })}
-          className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition flex items-center justify-center gap-2"
-        >
-          <Edit className="w-4 h-4" />
-          Edit
-          onClick={onBookSession}
-          className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
-        >
-          Book Session
-        </button>
+        {onBookSession && (
+          <button
+            onClick={onBookSession}
+            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+          >
+            Book Session
+          </button>
+        )}
 
-        <button 
-          onClick={() => onDelete(tutorId)}
-          className="flex-1 border-2 border-red-600 text-red-600 font-semibold py-2 px-4 rounded hover:bg-red-50 transition flex items-center justify-center gap-2"
-        >
-          <Trash2 className="w-4 h-4" />
-          Delete
-        </button>
+        {onEdit && (
+          <button 
+            onClick={() => onEdit({ tutorId, name, institution, rating, reviews, hourly, subjects, location, schedule, availability, experience })}
+            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition flex items-center justify-center gap-2"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </button>
+        )}
+
+        {onDelete && (
+          <button 
+            onClick={() => onDelete(tutorId)}
+            className="flex-1 border-2 border-red-600 text-red-600 font-semibold py-2 px-4 rounded hover:bg-red-50 transition flex items-center justify-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete
+          </button>
+        )}
       </div>
     </div>
   )
@@ -395,6 +404,7 @@ export default function FindTutorsPage() {
                 {...tutor} 
                 onEdit={handleOpenModal}
                 onDelete={handleDeleteTutor}
+                onBookSession={() => navigate('/book-session')}
               />
             ))}
           </div>
@@ -414,15 +424,6 @@ export default function FindTutorsPage() {
             </button>
           </div>
         )}
-        <div className="grid grid-cols-3 gap-6 mb-8">
-          {tutors.map((tutor, index) => (
-            <TutorCard 
-              key={index} 
-              {...tutor} 
-              onBookSession={() => navigate('/book-session')}
-            />
-          ))}
-        </div>
 
         {/* Pagination */}
         {tutors.length > 0 && (
