@@ -8,7 +8,8 @@ import {
   ChevronDown,
   Radio,
   Star,
-  Users
+  Users,
+  User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";

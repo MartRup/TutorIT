@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-const Header = () => {
+const Header = ({ showNav = true }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
@@ -44,7 +44,7 @@ const Header = () => {
                     <span className="text-green-500">IT</span>
                 </Link>
 
-                {isLoggedIn ? (
+                {isLoggedIn && showNav ? (
                     // Navigation for logged in users
                     <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
                         <Link to="/dashboard" className="hover:text-blue-600 transition">Dashboard</Link>

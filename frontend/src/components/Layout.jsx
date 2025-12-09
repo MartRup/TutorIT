@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "./Header";
+
 import {
   LayoutDashboard,
   Play,
@@ -8,7 +8,8 @@ import {
   MessageCircle,
   User,
   Settings,
-  BookOpen
+  BookOpen,
+  LogOut
 } from "lucide-react";
 
 const Layout = ({ children, activePage = "dashboard" }) => {
@@ -57,9 +58,21 @@ const Layout = ({ children, activePage = "dashboard" }) => {
     navigate(path);
   };
 
+  const handleLogout = async () => {
+    try {
+        await fetch('http://localhost:8080/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include', // Include cookies in the request
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        window.location.href = '/';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Header />
       
       <div className="flex">
         {/* Sidebar */}
@@ -84,11 +97,19 @@ const Layout = ({ children, activePage = "dashboard" }) => {
                 {item.label}
               </button>
             ))}
+            
+            <button
+                onClick={handleLogout}
+                className="w-full rounded-lg px-4 py-2 text-left font-semibold flex items-center gap-3 text-red-600 hover:bg-red-50"
+            >
+                <LogOut className="h-5 w-5" />
+                Logout
+            </button>
           </nav>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 pt-20">
+        <main className="flex-1">
           {children}
         </main>
       </div>
