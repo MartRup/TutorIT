@@ -33,21 +33,20 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
-        
+
         // In a real application, you would hash passwords and compare them securely
         // For this example, we'll simulate authentication
-        
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             // Simulate authentication - in a real app, you'd check against database
             // For demonstration, we'll assume all logins are successful
             String userType = "student"; // This would be determined by checking the database
-            
+
             // Generate JWT token
             String token = jwtUtil.generateToken(email, userType);
-            
+
             // Create response cookie
             ResponseCookie cookie = ResponseCookie.from("jwt", token)
                     .httpOnly(true)
@@ -56,11 +55,11 @@ public class AuthController {
                     .maxAge(24 * 60 * 60) // 24 hours
                     .sameSite("Lax")
                     .build();
-            
+
             response.put("success", true);
             response.put("userType", userType);
             response.put("message", "Login successful");
-            
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
                     .body(response);
@@ -104,14 +103,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-    
+
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> response = new HashMap<>();
         response.put("authenticated", true);
         return ResponseEntity.ok(response);
     }
-    
+
     @GetMapping("/current-user")
     public ResponseEntity<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -121,12 +120,13 @@ public class AuthController {
             if (token != null && jwtUtil.validateToken(token)) {
                 String email = jwtUtil.extractEmail(token);
                 String userType = jwtUtil.extractUserType(token);
-                
+
                 response.put("email", email);
                 response.put("userType", userType);
                 response.put("authenticated", true);
-                
-                // In a real implementation, you would fetch the full user object from the database
+
+                // In a real implementation, you would fetch the full user object from the
+                // database
                 // For now, we'll return mock data
                 Map<String, Object> user = new HashMap<>();
                 user.put("id", 1L);
@@ -137,8 +137,8 @@ public class AuthController {
                 user.put("bio", "Experienced tutor with 5 years of teaching mathematics and science.");
                 user.put("education", "Master's in Education");
                 user.put("yearsOfExperience", 5);
-                user.put("subjects", new String[]{"Mathematics", "Science"});
-                
+                user.put("subjects", new String[] { "Mathematics", "Science" });
+
                 response.put("user", user);
                 return ResponseEntity.ok(response);
             } else {
@@ -152,7 +152,7 @@ public class AuthController {
             return ResponseEntity.status(500).body(response);
         }
     }
-    
+
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpServletResponse response) {
         // Clear the JWT cookie
@@ -163,11 +163,11 @@ public class AuthController {
                 .maxAge(0) // Expire immediately
                 .sameSite("Lax")
                 .build();
-        
+
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("success", true);
         responseMap.put("message", "Logged out successfully");
-        
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(responseMap);
