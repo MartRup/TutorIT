@@ -27,13 +27,15 @@ export default function SettingsPage() {
     phoneNumber: "",
     bio: "",
     education: "",
-    yearsOfExperience: ""
+    yearsOfExperience: "",
+    profilePicture: null
   });
   const [subjects, setSubjects] = useState(["Mathematics", "Science"]);
   const [newSubject, setNewSubject] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
 
   // Load user data when component mounts
   useEffect(() => {
@@ -42,19 +44,33 @@ export default function SettingsPage() {
 
   const loadUserData = async () => {
     try {
-      // In a real implementation, this would fetch the current user's data
-      // For now, we'll use mock data
-      const mockUserData = {
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@example.com",
-        phoneNumber: "+1234567890",
-        bio: "Experienced tutor with 5 years of teaching mathematics and science.",
-        education: "Master's in Education",
-        yearsOfExperience: "5"
+      const userData = await userService.getCurrentUser();
+      console.log("User data loaded:", userData);
+      
+      // Parse user data from the response
+      const user = userData.user || {};
+      
+      // Split name into first and last name
+      const nameParts = user.name ? user.name.split(' ') : [];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
+      const parsedUserData = {
+        firstName: firstName,
+        lastName: lastName,
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+        bio: user.bio || "",
+        education: user.education || "",
+        yearsOfExperience: user.yearsOfExperience || ""
       };
       
-      setFormData(mockUserData);
+      setFormData(parsedUserData);
+      
+      // Load subjects if available
+      if (user.subjects && Array.isArray(user.subjects)) {
+        setSubjects(user.subjects);
+      }
     } catch (error) {
       console.error("Error loading user data:", error);
       setErrorMessage("Failed to load user data");
@@ -83,10 +99,44 @@ export default function SettingsPage() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Handle file upload logic here
-      console.log("File selected:", file.name);
-      setSuccessMessage("Profile picture updated successfully!");
+      // Check file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        setErrorMessage("Please select a valid image file (JPEG, JPG, GIF, or PNG)");
+        return;
+      }
+      
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setErrorMessage("File size exceeds 2MB limit");
+        return;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        profilePicture: file
+      }));
+      setPreviewImage(URL.createObjectURL(file));
+      setSuccessMessage("Profile picture selected successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
+    }
+  };
+
+  const uploadProfilePicture = async (file) => {
+    try {
+      // In a real implementation, you would get the actual user ID
+      // For now, we'll use a mock ID
+      const userId = 1;
+      
+      // Upload profile picture using userService
+      const response = await userService.uploadProfilePicture(userId, file);
+      console.log("Profile picture uploaded:", response);
+      
+      // Return the URL of the uploaded image
+      return response.imageUrl || URL.createObjectURL(file);
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      throw error;
     }
   };
 
@@ -96,12 +146,36 @@ export default function SettingsPage() {
     setErrorMessage("");
     
     try {
-      // In a real implementation, this would save to the backend
-      // For now, we'll simulate a successful save
-      console.log("Saving changes...", formData, subjects);
+      // Upload profile picture if selected
+      let profilePictureUrl = null;
+      if (formData.profilePicture) {
+        try {
+          profilePictureUrl = await uploadProfilePicture(formData.profilePicture);
+          console.log("Profile picture uploaded:", profilePictureUrl);
+        } catch (uploadError) {
+          console.error("Error uploading profile picture:", uploadError);
+          setErrorMessage("Failed to upload profile picture. Other changes will still be saved.");
+          // Continue with saving other data even if picture upload fails
+        }
+      }
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Prepare user data for saving
+      const userData = {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        bio: formData.bio,
+        education: formData.education,
+        yearsOfExperience: parseInt(formData.yearsOfExperience) || 0
+      };
+      
+      // In a real implementation, you would get the actual user ID
+      // For now, we'll use a mock ID
+      const userId = 1;
+      
+      // Save user data to backend
+      const response = await userService.updateUserProfile(userId, userData);
+      console.log("User data saved:", response);
       
       setSuccessMessage("Changes saved successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -215,7 +289,11 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-6 mb-8">
                   <div className="relative">
                     <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                      <User className="w-12 h-12 text-gray-500" />
+                      {previewImage ? (
+                        <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-12 h-12 text-gray-500" />
+                      )}
                     </div>
                   </div>
                   <div className="flex-1">
