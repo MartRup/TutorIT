@@ -16,41 +16,35 @@ const Layout = ({ children, activePage = "dashboard" }) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { 
-      icon: <LayoutDashboard className="h-5 w-5" />, 
-      label: "Dashboard", 
+    {
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      label: "Dashboard",
       key: "dashboard",
-      path: "/dashboard" 
+      path: "/dashboard"
     },
-    { 
-      icon: <Play className="h-5 w-5" />, 
-      label: "Sessions", 
+    {
+      icon: <Play className="h-5 w-5" />,
+      label: "Sessions",
       key: "sessions",
-      path: "/sessions" 
+      path: "/sessions"
     },
-    { 
-      icon: <Users className="h-5 w-5" />, 
-      label: "Find Tutors", 
+    {
+      icon: <Users className="h-5 w-5" />,
+      label: "Find Tutors",
       key: "find-tutors",
-      path: "/find-tutors" 
+      path: "/find-tutors"
     },
-    { 
-      icon: <MessageCircle className="h-5 w-5" />, 
-      label: "Messages", 
+    {
+      icon: <MessageCircle className="h-5 w-5" />,
+      label: "Messages",
       key: "messages",
-      path: "/messages" 
+      path: "/messages"
     },
-    { 
-      icon: <User className="h-5 w-5" />, 
-      label: "Students", 
-      key: "students",
-      path: "/students" 
-    },
-    { 
-      icon: <Settings className="h-5 w-5" />, 
-      label: "Settings", 
+    {
+      icon: <Settings className="h-5 w-5" />,
+      label: "Settings",
       key: "settings",
-      path: "/settings" 
+      path: "/settings"
     }
   ];
 
@@ -60,20 +54,20 @@ const Layout = ({ children, activePage = "dashboard" }) => {
 
   const handleLogout = async () => {
     try {
-        await fetch('http://localhost:8080/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include', // Include cookies in the request
-        });
+      await fetch('http://localhost:8080/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include', // Include cookies in the request
+      });
     } catch (error) {
-        console.error('Logout error:', error);
+      console.error('Logout error:', error);
     } finally {
-        window.location.href = '/';
+      window.location.href = '/';
     }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      
+
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-56 border-r border-gray-200 p-6 min-h-screen">
@@ -87,23 +81,22 @@ const Layout = ({ children, activePage = "dashboard" }) => {
               <button
                 key={item.key}
                 onClick={() => handleNavigation(item.path, item.key)}
-                className={`w-full rounded-lg px-4 py-2 text-left font-semibold flex items-center gap-3 ${
-                  activePage === item.key
+                className={`w-full rounded-lg px-4 py-2 text-left font-semibold flex items-center gap-3 ${activePage === item.key
                     ? "bg-gradient-to-r from-blue-500 to-green-500 text-white"
                     : "text-gray-800 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 {item.icon}
                 {item.label}
               </button>
             ))}
-            
+
             <button
-                onClick={handleLogout}
-                className="w-full rounded-lg px-4 py-2 text-left font-semibold flex items-center gap-3 text-red-600 hover:bg-red-50"
+              onClick={handleLogout}
+              className="w-full rounded-lg px-4 py-2 text-left font-semibold flex items-center gap-3 text-red-600 hover:bg-red-50"
             >
-                <LogOut className="h-5 w-5" />
-                Logout
+              <LogOut className="h-5 w-5" />
+              Logout
             </button>
           </nav>
         </aside>

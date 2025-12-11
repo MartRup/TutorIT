@@ -109,7 +109,7 @@ const TutorCard = ({
         )}
 
         {onEdit && (
-          <button 
+          <button
             onClick={() => onEdit({ tutorId, name, institution, rating, reviews, hourly, subjects, location, schedule, availability, experience })}
             className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition flex items-center justify-center gap-2"
           >
@@ -119,7 +119,7 @@ const TutorCard = ({
         )}
 
         {onDelete && (
-          <button 
+          <button
             onClick={() => onDelete(tutorId)}
             className="flex-1 border-2 border-red-600 text-red-600 font-semibold py-2 px-4 rounded hover:bg-red-50 transition flex items-center justify-center gap-2"
           >
@@ -134,16 +134,25 @@ const TutorCard = ({
 
 export default function FindTutorsPage() {
   const [tutors, setTutors] = useState([])
+  const [filteredTutors, setFilteredTutors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedTutor, setSelectedTutor] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [subjectFilter, setSubjectFilter] = useState("")
+  const [availabilityFilter, setAvailabilityFilter] = useState("")
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchTutors()
   }, [])
+
+  // Filter tutors whenever search query or filters change
+  useEffect(() => {
+    filterTutors()
+  }, [searchQuery, subjectFilter, availabilityFilter, tutors])
 
   const fetchTutors = async () => {
     try {
@@ -165,6 +174,7 @@ export default function FindTutorsPage() {
         experience: tutor.experience || 0,
       }))
       setTutors(transformedTutors)
+      setFilteredTutors(transformedTutors)
       setError(null)
     } catch (err) {
       setError("Failed to fetch tutors")
@@ -172,6 +182,40 @@ export default function FindTutorsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const filterTutors = () => {
+    let filtered = [...tutors]
+
+    // Search filter: search in name and subjects
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(tutor => {
+        const nameMatch = tutor.name.toLowerCase().includes(query)
+        const subjectMatch = tutor.subjects.some(subject =>
+          subject.toLowerCase().includes(query)
+        )
+        return nameMatch || subjectMatch
+      })
+    }
+
+    // Subject filter
+    if (subjectFilter) {
+      filtered = filtered.filter(tutor =>
+        tutor.subjects.some(subject =>
+          subject.toLowerCase() === subjectFilter.toLowerCase()
+        )
+      )
+    }
+
+    // Availability filter
+    if (availabilityFilter) {
+      filtered = filtered.filter(tutor =>
+        tutor.availability.toLowerCase() === availabilityFilter.toLowerCase()
+      )
+    }
+
+    setFilteredTutors(filtered)
   }
 
   const handleOpenModal = (tutor = null) => {
@@ -289,46 +333,51 @@ export default function FindTutorsPage() {
             <input
               type="text"
               placeholder="Search by subject, skill, or tutor name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-4 py-3 border border-gray-300 rounded lg focus:outline-none focus:border-blue-500"
             />
-            <button className="bg-blue-600 text-white font-semibold py-3 px-6 rounded hover:bg-blue-700 transition">
-              Search
-            </button>
           </div>
 
           {/* Filters */}
           <div className="flex gap-3 mb-6">
-            <select className="px-4 py-2 border border-gray-300 rounded focus:outline-none">
-              <option>Subject</option>
+            <select
+              value={subjectFilter}
+              onChange={(e) => setSubjectFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All Subjects</option>
+              {[...new Set(tutors.flatMap(tutor => tutor.subjects))].sort().map((subject, index) => (
+                <option key={index} value={subject}>{subject}</option>
+              ))}
             </select>
 
-            <select className="px-4 py-2 border border-gray-300 rounded focus:outline-none">
-              <option>Availability</option>
-            </select>
-
-            <select className="px-4 py-2 border border-gray-300 rounded focus:outline-none">
-              <option>Location</option>
-            </select>
-
-            <select className="px-4 py-2 border border-gray-300 rounded focus:outline-none">
-              <option>More Filters</option>
+            <select
+              value={availabilityFilter}
+              onChange={(e) => setAvailabilityFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            >
+              <option value="">All Availability</option>
+              {[...new Set(tutors.map(tutor => tutor.availability))].sort().map((availability, index) => (
+                <option key={index} value={availability}>{availability}</option>
+              ))}
             </select>
           </div>
 
           {/* Results Count */}
           <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-600">Showing {tutors.length} tutors</p>
+            <p className="text-gray-600">Showing {filteredTutors.length} tutors</p>
             <p className="text-gray-600">Sort by:</p>
           </div>
         </div>
 
         {/* Tutors Grid */}
-        {tutors.length > 0 ? (
+        {filteredTutors.length > 0 ? (
           <div className="grid grid-cols-3 gap-6 mb-8">
-            {tutors.map((tutor) => (
-              <TutorCard 
-                key={tutor.tutorId} 
-                {...tutor} 
+            {filteredTutors.map((tutor) => (
+              <TutorCard
+                key={tutor.tutorId}
+                {...tutor}
                 onEdit={handleOpenModal}
                 onDelete={handleDeleteTutor}
                 onBookSession={() => navigate('/book-session')}
@@ -341,19 +390,25 @@ export default function FindTutorsPage() {
               <Users className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Tutors Found</h3>
-            <p className="text-gray-500 mb-4">There are currently no tutors available.</p>
-            <button
-              onClick={() => handleOpenModal()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Your First Tutor
-            </button>
+            <p className="text-gray-500 mb-4">
+              {searchQuery || subjectFilter || availabilityFilter
+                ? "No tutors match your search criteria. Try adjusting your filters."
+                : "There are currently no tutors available."}
+            </p>
+            {!searchQuery && !subjectFilter && !availabilityFilter && (
+              <button
+                onClick={() => handleOpenModal()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Your First Tutor
+              </button>
+            )}
           </div>
         )}
 
         {/* Pagination */}
-        {tutors.length > 0 && (
+        {filteredTutors.length > 0 && (
           <div className="flex flex-col items-center gap-6">
             <button className="border-2 border-blue-600 text-blue-600 font-semibold py-2 px-8 rounded hover:bg-blue-50 transition">
               Load More Tutors

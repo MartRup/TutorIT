@@ -6,7 +6,6 @@ import RegisterPage from './pages/RegisterPage';
 import FindTutorsPage from './pages/FindTutors';
 import MessagesPage from './pages/MessagesPage';
 import SessionsPage from './pages/SessionsPage';
-import StudentsPage from './pages/StudentsPage';
 import BookSession from './pages/BookSession';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
@@ -41,11 +40,7 @@ function App() {
               <SessionsPage />
             </ProtectedRoute>
           } />
-          <Route path="/students" element={
-            <ProtectedRoute>
-              <StudentsPage />
-            </ProtectedRoute>
-          } />
+
           <Route path="/book-session" element={<BookSession />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
