@@ -351,7 +351,7 @@ export default function FindTutorsPage() {
               <TutorCard
                 key={tutor.tutorId}
                 {...tutor}
-                onBookSession={() => navigate('/book-session')}
+                onBookSession={() => navigate('/book-session', { state: { tutor } })}
                 onStartChat={() => handleStartChat(tutor)}
               />
             ))}
