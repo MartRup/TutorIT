@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class AuthController {
 
     private final StudentService studentService;
@@ -132,10 +132,46 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Map<String, Object>> status() {
+    public ResponseEntity<Map<String, Object>> status(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
-        response.put("authenticated", true);
-        return ResponseEntity.ok(response);
+        try {
+            // Extract user information from JWT token
+            String token = jwtUtil.extractTokenFromRequest(request);
+            if (token != null && jwtUtil.validateToken(token)) {
+                String email = jwtUtil.extractEmail(token);
+                String userType = jwtUtil.extractUserType(token);
+
+                response.put("authenticated", true);
+                response.put("email", email);
+                response.put("role", userType);
+
+                // Fetch actual user data from database
+                if ("student".equals(userType)) {
+                    java.util.Optional<Student> studentOpt = studentService.getStudentRepository().findByEmail(email);
+                    if (studentOpt.isPresent()) {
+                        Student student = studentOpt.get();
+                        response.put("userId", student.getId());
+                        response.put("name", student.getName());
+                    }
+                } else if ("tutor".equals(userType)) {
+                    java.util.Optional<TutorEntity> tutorOpt = tutorService.getTutorRepository().findByEmail(email);
+                    if (tutorOpt.isPresent()) {
+                        TutorEntity tutor = tutorOpt.get();
+                        response.put("userId", tutor.getTutorId());
+                        response.put("name", tutor.getName());
+                    }
+                }
+
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("authenticated", false);
+                return ResponseEntity.status(401).body(response);
+            }
+        } catch (Exception e) {
+            response.put("authenticated", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
     @GetMapping("/current-user")

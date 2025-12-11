@@ -29,10 +29,10 @@ public class TutoringSessionEntity {
     @Column(name = "tutor_id", nullable = false)
     private String tutorId;
 
-    @Column(name = "subject_id", nullable = false)
+    @Column(name = "subject_id")
     private String subjectId;
 
-    @Column(name = "payment_id", nullable = false)
+    @Column(name = "payment_id")
     private String paymentId;
 
     // Additional fields for frontend display

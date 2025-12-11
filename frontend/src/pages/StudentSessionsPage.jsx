@@ -184,6 +184,10 @@ export default function StudentSessionsPage() {
     );
     const completedSessions = sessions.filter(s => s.status === 'completed');
 
+    console.log('Total sessions:', sessions.length);
+    console.log('Upcoming sessions:', upcomingSessions.length, upcomingSessions);
+    console.log('Completed sessions:', completedSessions.length, completedSessions);
+
     return (
         <Layout activePage="sessions">
             <div className="p-8 max-w-7xl mx-auto">

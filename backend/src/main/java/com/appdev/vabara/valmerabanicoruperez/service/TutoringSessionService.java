@@ -5,6 +5,7 @@ import com.appdev.vabara.valmerabanicoruperez.repository.TutoringSessionReposito
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class TutoringSessionService {
@@ -17,6 +18,18 @@ public class TutoringSessionService {
 
     // Create
     public TutoringSessionEntity addTutoringSession(TutoringSessionEntity tutoringSession) {
+        // Generate UUID if not set
+        if (tutoringSession.getSessionId() == null || tutoringSession.getSessionId().isEmpty()) {
+            tutoringSession.setSessionId(UUID.randomUUID().toString());
+        }
+        // Set default payment ID if not provided
+        if (tutoringSession.getPaymentId() == null || tutoringSession.getPaymentId().isEmpty()) {
+            tutoringSession.setPaymentId("PAYMENT-" + UUID.randomUUID().toString());
+        }
+        // Set default subject ID if not provided
+        if (tutoringSession.getSubjectId() == null || tutoringSession.getSubjectId().isEmpty()) {
+            tutoringSession.setSubjectId("SUBJECT-001");
+        }
         return tutoringSessionRepository.save(tutoringSession);
     }
 

@@ -108,6 +108,12 @@ export default function BookSession() {
     if (currentStep === 1 && !validateStep1()) return;
     if (currentStep === 3 && !validateStep3()) return;
 
+    // On step 3 (payment), complete the booking
+    if (currentStep === 3) {
+      handleCompleteBooking();
+      return;
+    }
+
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
@@ -133,14 +139,27 @@ export default function BookSession() {
 
       const userData = await userResponse.json();
       console.log('Current user data:', userData);
+      console.log('Available fields:', Object.keys(userData));
+
+      // Try to get student ID from various possible field names
+      const studentId = userData.userId || userData.id || userData.user_id || userData.studentId;
+      const studentName = userData.name || userData.username || userData.fullName || userData.email || 'Student';
+
+      console.log('Extracted studentId:', studentId);
+      console.log('Extracted studentName:', studentName);
+
+      if (!studentId) {
+        alert('❌ ERROR: Could not get student ID from user data.\n\nUser data: ' + JSON.stringify(userData, null, 2));
+        throw new Error('Could not get student ID from user data. Please make sure you are logged in.');
+      }
 
       // Prepare session data for backend
       const sessionDateTime = new Date(`${formData.date}T${formData.time}`);
 
       const sessionData = {
         // Student information
-        studentId: userData.userId || userData.id,
-        studentName: userData.name || userData.username || 'Student',
+        studentId: studentId,
+        studentName: studentName,
         // Tutor information
         tutorId: tutorData.tutorId,
         tutorName: tutorData.name,
@@ -186,11 +205,18 @@ export default function BookSession() {
       console.log('✅ Session created successfully:', createdSession);
       console.log('Session ID:', createdSession.sessionId || createdSession.id);
 
+      // Show success alert
+      alert(`✅ SUCCESS!\nSession created: ${JSON.stringify(createdSession, null, 2)}`);
+
       // Move to confirmation step
       setCurrentStep(4);
 
     } catch (error) {
       console.error('Error booking session:', error);
+
+      // Show detailed error alert
+      alert(`❌ BOOKING FAILED!\nError: ${error.message}\n\nCheck console for details`);
+
       Swal.fire({
         title: 'Booking Failed',
         text: error.message || 'There was an error booking your session. Please try again.',

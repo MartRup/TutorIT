@@ -177,6 +177,10 @@ export default function TutorSessionsPage() {
     );
     const completedSessions = sessions.filter(s => s.status === 'completed');
 
+    console.log('[TUTOR] Total sessions:', sessions.length);
+    console.log('[TUTOR] Upcoming sessions:', upcomingSessions.length, upcomingSessions);
+    console.log('[TUTOR] Completed sessions:', completedSessions.length, completedSessions);
+
     return (
         <Layout activePage="sessions">
             <div className="p-8 max-w-7xl mx-auto">
@@ -301,7 +305,8 @@ function UpcomingSessionsTab({ sessions, onStart, onCancel }) {
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
                 <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Upcoming Sessions</h3>
-                <p className="text-gray-500">You don't have any scheduled sessions yet.</p>
+                <p className="text-gray-500 mb-2">You don't have any scheduled sessions yet.</p>
+                <p className="text-gray-400 text-sm">Sessions will appear here when students book with you.</p>
             </div>
         );
     }
