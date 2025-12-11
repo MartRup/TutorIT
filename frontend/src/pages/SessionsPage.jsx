@@ -181,7 +181,7 @@ export default function SessionsPage() {
             <h1 className="text-2xl font-bold">Sessions</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => handleOpenModal()}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
@@ -201,18 +201,18 @@ export default function SessionsPage() {
 
           {/* Tabs */}
           <div className="flex gap-2 mb-8 border-b border-gray-200">
-            <TabButton 
-              active={activeTab === "active"} 
+            <TabButton
+              active={activeTab === "active"}
               onClick={() => setActiveTab("active")}
               label="Active & Upcoming"
             />
-            <TabButton 
-              active={activeTab === "completed"} 
+            <TabButton
+              active={activeTab === "completed"}
               onClick={() => setActiveTab("completed")}
               label="Completed"
             />
-            <TabButton 
-              active={activeTab === "history"} 
+            <TabButton
+              active={activeTab === "history"}
               onClick={() => setActiveTab("history")}
               label="Session History"
             />
@@ -221,9 +221,9 @@ export default function SessionsPage() {
           {/* Tab Content */}
           <div className="space-y-8">
             {activeTab === "active" && (
-              <ActiveUpcomingContent 
-                sessions={sessions} 
-                onEdit={handleOpenModal} 
+              <ActiveUpcomingContent
+                sessions={sessions}
+                onEdit={handleOpenModal}
                 onDelete={handleDeleteSession}
                 onJoinSession={handleJoinSession}
                 onStartSession={handleStartSession}
@@ -242,8 +242,8 @@ export default function SessionsPage() {
 
 function NavItem({ icon, label, onClick }) {
   return (
-    <div 
-      onClick={onClick} 
+    <div
+      onClick={onClick}
       className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
     >
       {icon}
@@ -256,11 +256,10 @@ function TabButton({ active, onClick, label }) {
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 font-medium text-sm transition-colors relative ${
-        active 
-          ? "text-blue-600 bg-blue-50 rounded-t-lg border-b-2 border-blue-600" 
+      className={`px-4 py-2 font-medium text-sm transition-colors relative ${active
+          ? "text-blue-600 bg-blue-50 rounded-t-lg border-b-2 border-blue-600"
           : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-t-lg"
-      }`}
+        }`}
     >
       {label}
     </button>
@@ -269,11 +268,11 @@ function TabButton({ active, onClick, label }) {
 
 function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onStartSession }) {
   // Filter sessions based on status
-  const activeSessions = sessions.filter(session => 
+  const activeSessions = sessions.filter(session =>
     session.status === "active" || session.status === "live"
   );
-  
-  const upcomingSessions = sessions.filter(session => 
+
+  const upcomingSessions = sessions.filter(session =>
     session.status === "scheduled" || session.status === "upcoming"
   );
   return (
@@ -289,7 +288,7 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onSt
         <div className="space-y-6">
           {activeSessions.length > 0 ? (
             activeSessions.map((session) => (
-              <ActiveSessionCard 
+              <ActiveSessionCard
                 key={session.sessionId}
                 session={session}
                 onEdit={onEdit}
@@ -301,6 +300,8 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onSt
                 duration={session.duration}
                 status={session.status}
                 isScheduled={false}
+                onJoinSession={onJoinSession}
+                onStartSession={onStartSession}
               />
             ))
           ) : (
@@ -308,26 +309,6 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onSt
               <p className="text-gray-500">No active sessions at the moment</p>
             </div>
           )}
-          <ActiveSessionCard 
-            tutorName="Sarah Johnson"
-            subject="Mathematics"
-            topic="Calculus - Derivatives"
-            startTime="2:00 PM"
-            duration="45 min"
-            status="Live"
-            onJoinSession={onJoinSession}
-            isScheduled={false}
-          />
-          <ActiveSessionCard 
-            tutorName="Mike Chen"
-            subject="Physics"
-            topic="Quantum Mechanics"
-            startTime="3:30 PM"
-            duration="60 min"
-            status="Scheduled"
-            isScheduled={true}
-            onStartSession={onStartSession}
-          />
         </div>
       </section>
 
@@ -342,7 +323,7 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onSt
         <div className="space-y-4">
           {upcomingSessions.length > 0 ? (
             upcomingSessions.map((session) => (
-              <UpcomingSessionCard 
+              <UpcomingSessionCard
                 key={session.sessionId}
                 session={session}
                 onEdit={onEdit}
@@ -367,7 +348,7 @@ function ActiveUpcomingContent({ sessions, onEdit, onDelete, onJoinSession, onSt
 
 function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topic, startTime, duration, status, isScheduled, onJoinSession, onStartSession }) {
   const { sessionId, tutorName: sessionTutorName, subject: sessionSubject, topic: sessionTopic, dateTime, duration: sessionDuration, status: sessionStatus, isScheduled: sessionIsScheduled } = session || {};
-  
+
   // Use props if session data is not provided
   const displayName = tutorName || sessionTutorName || "Unknown Tutor";
   const displaySubject = subject || sessionSubject || "Unknown Subject";
@@ -375,7 +356,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
   const displayDuration = duration || sessionDuration || 0;
   const displayStatus = status || sessionStatus || "";
   const displayIsScheduled = isScheduled !== undefined ? isScheduled : sessionIsScheduled || false;
-  
+
   const handleAction = () => {
     const sessionData = {
       tutorName: displayName,
@@ -385,7 +366,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
       duration: displayDuration,
       status: displayStatus
     };
-    
+
     if (displayIsScheduled) {
       onStartSession?.(sessionData);
     } else {
@@ -405,9 +386,8 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
             <p className="text-sm text-blue-600">{displaySubject}</p>
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          displayIsScheduled ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
-        }`}>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${displayIsScheduled ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"
+          }`}>
           {displayStatus}
         </span>
       </div>
@@ -417,7 +397,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
         <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            {dateTime ? new Date(dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}
+            {dateTime ? new Date(dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"}
             {displayIsScheduled ? `Scheduled for ${startTime}` : `Started at ${startTime || "N/A"}`}
           </span>
           <span className="flex items-center gap-1">
@@ -428,7 +408,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
       </div>
 
       <div className="flex gap-3">
-        <button 
+        <button
           onClick={handleAction}
           className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
         >
@@ -436,7 +416,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
           {displayIsScheduled ? "Start Session" : "Join Session"}
         </button>
         {session && (
-          <button 
+          <button
             onClick={() => onEdit(session)}
             className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
           >
@@ -444,7 +424,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
           </button>
         )}
         {session && sessionId && (
-          <button 
+          <button
             onClick={() => onDelete(sessionId)}
             className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
           >
@@ -458,7 +438,7 @@ function ActiveSessionCard({ session, onEdit, onDelete, tutorName, subject, topi
 
 function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, topic, dateTime, duration }) {
   const { sessionId, tutorName: sessionTutorName, subject: sessionSubject, topic: sessionTopic, dateTime: sessionDateTime, duration: sessionDuration } = session || {};
-  
+
   // Use props if session data is not provided
   const displayName = tutorName || sessionTutorName || "Unknown Tutor";
   const displaySubject = subject || sessionSubject || "Unknown Subject";
@@ -480,11 +460,11 @@ function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, to
       </div>
       <div className="flex items-center gap-4">
         <div className="text-right">
-          <p className="text-sm font-medium text-gray-900">{displayDateTime ? new Date(displayDateTime).toLocaleDateString() : "N/A"}, {displayDateTime ? new Date(displayDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "N/A"}</p>
+          <p className="text-sm font-medium text-gray-900">{displayDateTime ? new Date(displayDateTime).toLocaleDateString() : "N/A"}, {displayDateTime ? new Date(displayDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "N/A"}</p>
           <p className="text-sm text-gray-500">{displayDuration} min</p>
         </div>
         {session && (
-          <button 
+          <button
             onClick={() => onEdit(session)}
             className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
           >
@@ -492,7 +472,7 @@ function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, to
           </button>
         )}
         {session && sessionId && (
-          <button 
+          <button
             onClick={() => onDelete(sessionId)}
             className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
           >
@@ -505,7 +485,7 @@ function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, to
 }
 
 function CompletedContent({ sessions, onEdit, onDelete }) {
-  const completedSessions = sessions.filter(session => 
+  const completedSessions = sessions.filter(session =>
     session.status === "completed"
   );
 
@@ -519,7 +499,7 @@ function CompletedContent({ sessions, onEdit, onDelete }) {
       <div className="space-y-4">
         {completedSessions.length > 0 ? (
           completedSessions.map((session) => (
-            <CompletedSessionCard 
+            <CompletedSessionCard
               key={session.sessionId}
               session={session}
               onEdit={onEdit}
@@ -557,13 +537,13 @@ function CompletedSessionCard({ session, onEdit, onDelete }) {
             <p className="text-sm text-gray-500">{dateTime ? new Date(dateTime).toLocaleDateString() : "N/A"}</p>.
             <p className="text-sm text-gray-500">{duration || 0} min</p>
           </div>
-          <button 
+          <button
             onClick={() => onEdit(session)}
             className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
           >
             <Edit className="w-5 h-5" />
           </button>
-          <button 
+          <button
             onClick={() => onDelete(sessionId)}
             className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
           >
@@ -574,14 +554,14 @@ function CompletedSessionCard({ session, onEdit, onDelete }) {
 
       <div className="flex items-center gap-1 mb-2">
         {[...Array(5)].map((_, i) => (
-          <Star 
-            key={i} 
-            className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} 
+          <Star
+            key={i}
+            className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
           />
         ))}
         <span className="text-sm text-gray-500 ml-1">({rating || 0}/5)</span>
       </div>
-      
+
       <p className="text-sm text-gray-600 italic">"{feedback || "No feedback provided"}"</p>
     </div>
   );
@@ -646,12 +626,11 @@ function HistoryContent({ sessions, onEdit, onDelete }) {
                     {session.duration || 0} min
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      session.status === "completed" ? "bg-green-100 text-green-800" :
-                      session.status === "active" || session.status === "live" ? "bg-blue-100 text-blue-800" :
-                      session.status === "scheduled" || session.status === "upcoming" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${session.status === "completed" ? "bg-green-100 text-green-800" :
+                        session.status === "active" || session.status === "live" ? "bg-blue-100 text-blue-800" :
+                          session.status === "scheduled" || session.status === "upcoming" ? "bg-yellow-100 text-yellow-800" :
+                            "bg-gray-100 text-gray-800"
+                      }`}>
                       {session.status || "unknown"}
                     </span>
                   </td>
@@ -662,7 +641,7 @@ function HistoryContent({ sessions, onEdit, onDelete }) {
                     >
                       Edit
                     </button>
-                    <button 
+                    <button
                       onClick={() => onDelete(session.sessionId)}
                       className="text-red-600 hover:text-red-900"
                     >
@@ -691,14 +670,14 @@ function HistoryContent({ sessions, onEdit, onDelete }) {
   );
 }
 
-function SessionView({ 
-  session, 
-  onEndSession, 
-  isVideoOn, 
-  setIsVideoOn, 
-  isMicOn, 
-  setIsMicOn, 
-  isScreenSharing, 
+function SessionView({
+  session,
+  onEndSession,
+  isVideoOn,
+  setIsVideoOn,
+  isMicOn,
+  setIsMicOn,
+  isScreenSharing,
   setIsScreenSharing,
   isMinimized,
   setIsMinimized
@@ -821,25 +800,22 @@ function SessionView({
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={() => setIsMicOn(!isMicOn)}
-              className={`p-3 rounded-full transition-colors ${
-                isMicOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
-              }`}
+              className={`p-3 rounded-full transition-colors ${isMicOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+                }`}
             >
               {isMicOn ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}
             </button>
             <button
               onClick={() => setIsVideoOn(!isVideoOn)}
-              className={`p-3 rounded-full transition-colors ${
-                isVideoOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
-              }`}
+              className={`p-3 rounded-full transition-colors ${isVideoOn ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-red-600 hover:bg-red-700 text-white"
+                }`}
             >
               {isVideoOn ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
             </button>
             <button
               onClick={() => setIsScreenSharing(!isScreenSharing)}
-              className={`p-3 rounded-full transition-colors ${
-                isScreenSharing ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-700 hover:bg-gray-600 text-white"
-              }`}
+              className={`p-3 rounded-full transition-colors ${isScreenSharing ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-700 hover:bg-gray-600 text-white"
+                }`}
             >
               {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
             </button>
@@ -856,45 +832,45 @@ function SessionView({
         <div className="flex flex-1">
           {/* Chat Sidebar */}
           <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Chat</h3>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatMessages.length === 0 ? (
-              <div className="text-center text-gray-500 text-sm mt-8">
-                No messages yet. Start the conversation!
-              </div>
-            ) : (
-              chatMessages.map((msg, idx) => (
-                <div key={idx} className="mb-3">
-                  <div className="text-xs text-gray-500 mb-1">{msg.sender}</div>
-                  <div className="bg-blue-50 rounded-lg p-2 text-sm text-gray-900">
-                    {msg.text}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Send
-              </button>
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Chat</h3>
             </div>
-          </form>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.length === 0 ? (
+                <div className="text-center text-gray-500 text-sm mt-8">
+                  No messages yet. Start the conversation!
+                </div>
+              ) : (
+                chatMessages.map((msg, idx) => (
+                  <div key={idx} className="mb-3">
+                    <div className="text-xs text-gray-500 mb-1">{msg.sender}</div>
+                    <div className="bg-blue-50 rounded-lg p-2 text-sm text-gray-900">
+                      {msg.text}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  placeholder="Type a message..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Send
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 }

@@ -68,7 +68,7 @@ const Layout = ({ children, activePage = "dashboard" }) => {
       icon: <Play className="h-5 w-5" />,
       label: "Sessions",
       key: "sessions",
-      path: "/sessions"
+      path: "/tutor-sessions"
     },
     {
       icon: <MessageCircle className="h-5 w-5" />,

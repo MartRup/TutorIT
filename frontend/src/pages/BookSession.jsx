@@ -120,17 +120,89 @@ export default function BookSession() {
   };
 
   const handleCompleteBooking = async () => {
-    // Here you would normally send the booking to the backend
-    // For now, we'll just show success and navigate
+    try {
+      // Get current user info first
+      const userResponse = await fetch('http://localhost:8080/api/auth/status', {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-    Swal.fire({
-      title: 'Success!',
-      text: 'Your session has been booked successfully!',
-      icon: 'success',
-      confirmButtonText: 'OK'
-    }).then(() => {
-      navigate('/sessions');
-    });
+      if (!userResponse.ok) {
+        throw new Error('Failed to get user information');
+      }
+
+      const userData = await userResponse.json();
+      console.log('Current user data:', userData);
+
+      // Prepare session data for backend
+      const sessionDateTime = new Date(`${formData.date}T${formData.time}`);
+
+      const sessionData = {
+        // Student information
+        studentId: userData.userId || userData.id,
+        studentName: userData.name || userData.username || 'Student',
+        // Tutor information
+        tutorId: tutorData.tutorId,
+        tutorName: tutorData.name,
+        // Session details
+        subject: tutorData.subjects?.[0] || 'General',
+        topic: formData.notes || 'General tutoring session',
+        dateTime: sessionDateTime.toISOString(),
+        duration: parseInt(formData.duration.split(' ')[0]) * 60, // Convert hours to minutes
+        sessionType: formData.sessionType,
+        notes: formData.notes,
+        price: getTotal(),
+        status: 'scheduled',
+        paymentStatus: 'paid',
+        paymentDetails: {
+          cardholderName: paymentData.cardholderName,
+          lastFourDigits: paymentData.cardNumber.slice(-4),
+          amount: getTotal()
+        }
+      };
+
+      console.log('Booking session with data:', sessionData);
+
+      // Send booking to backend
+      const response = await fetch('http://localhost:8080/api/tutoring-sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(sessionData),
+      });
+
+      console.log('Booking response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Booking failed with response:', errorText);
+        const errorData = errorText ? JSON.parse(errorText) : {};
+        throw new Error(errorData.message || `Failed to book session (${response.status})`);
+      }
+
+      const createdSession = await response.json();
+      console.log('✅ Session created successfully:', createdSession);
+      console.log('Session ID:', createdSession.sessionId || createdSession.id);
+
+      // Move to confirmation step
+      setCurrentStep(4);
+
+    } catch (error) {
+      console.error('Error booking session:', error);
+      Swal.fire({
+        title: 'Booking Failed',
+        text: error.message || 'There was an error booking your session. Please try again.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
+
+  const handleViewSessions = () => {
+    // Navigate to sessions page and force a refresh
+    navigate('/sessions', { state: { refresh: true } });
   };
 
   // Format date for display
@@ -425,7 +497,7 @@ export default function BookSession() {
 
                   <div className="flex gap-4">
                     <button
-                      onClick={() => navigate('/sessions')}
+                      onClick={handleViewSessions}
                       className="flex-1 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       View My Sessions
