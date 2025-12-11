@@ -19,12 +19,16 @@ public class TutorEntity {
     private String expertiseSubjects;
     private Double hourlyRate;
     private String institution;
-    private Integer rating;
+    private Double rating;
     private Integer reviews;
     private String location;
     private String schedule;
     private String availability;
     private Integer experience;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String profilePicture;
 
     public Long getTutorId() {
         return tutorId;
@@ -83,11 +87,11 @@ public class TutorEntity {
         this.institution = institution;
     }
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 
@@ -129,5 +133,13 @@ public class TutorEntity {
 
     public void setExperience(Integer experience) {
         this.experience = experience;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

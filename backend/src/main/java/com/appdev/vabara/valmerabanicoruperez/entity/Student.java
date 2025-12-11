@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 
 @Entity
 public class Student {
@@ -19,6 +20,10 @@ public class Student {
 
     private String password;
     private int age;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String profilePicture;
 
     public Long getId() {
         return id;
@@ -58,5 +63,13 @@ public class Student {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

@@ -25,12 +25,6 @@ const Layout = ({ children, activePage = "dashboard" }) => {
   // Define navigation items for students
   const studentNavItems = [
     {
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: "Dashboard",
-      key: "dashboard",
-      path: "/dashboard"
-    },
-    {
       icon: <Play className="h-5 w-5" />,
       label: "Sessions",
       key: "sessions",
@@ -58,12 +52,6 @@ const Layout = ({ children, activePage = "dashboard" }) => {
 
   // Define navigation items for tutors (no Find Tutors)
   const tutorNavItems = [
-    {
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      label: "Dashboard",
-      key: "dashboard",
-      path: "/dashboard"
-    },
     {
       icon: <Play className="h-5 w-5" />,
       label: "Sessions",
