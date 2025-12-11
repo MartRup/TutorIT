@@ -111,7 +111,10 @@ const RegisterPage = () => {
             <div className="flex-grow flex items-center justify-center p-4">
                 <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-10">
                     <div className="text-center mb-6">
-                        <h1 className="text-3xl font-bold text-blue-600 mb-1">TutorIT</h1>
+                        <h1 className="text-3xl font-bold mb-1">
+                          <span className="text-blue-600">Tutor</span>
+                           <span className="text-green-600">IT</span>
+                            </h1>
                         <p className="text-gray-500 text-sm">Connect, Learn, Succeed</p>
                     </div>
 
