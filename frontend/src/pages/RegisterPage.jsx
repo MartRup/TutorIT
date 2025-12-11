@@ -47,6 +47,8 @@ const RegisterPage = () => {
                 url = 'http://localhost:8080/api/auth/register/student';
                 body = {
                     name: `${formData.firstName} ${formData.lastName}`,
+                    email: formData.email,
+                    password: formData.password,
                     age: 20 // Default age, you might want to add an age field to the form
                 };
             } else {
@@ -71,17 +73,60 @@ const RegisterPage = () => {
             const data = await response.json();
 
             if (data.success) {
-                // Use SweetAlert2 for success message
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Account created successfully!',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        navigate('/login');
+                // After successful registration, automatically log in the user
+                try {
+                    const loginResponse = await fetch('http://localhost:8080/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            email: formData.email,
+                            password: formData.password
+                        }),
+                    });
+
+                    const loginData = await loginResponse.json();
+
+                    if (loginData.success) {
+                        // Store user type and email in localStorage
+                        localStorage.setItem('userType', userType);
+                        localStorage.setItem('userEmail', formData.email);
+
+                        // Use SweetAlert2 for success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: `Welcome to TutorIT, ${userType === 'student' ? 'Student' : 'Tutor'}!`,
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            navigate('/dashboard');
+                        });
+                    } else {
+                        // Registration successful but auto-login failed, redirect to login
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Account created successfully! Please log in.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            navigate('/login');
+                        });
                     }
-                });
+                } catch (loginError) {
+                    console.error('Auto-login error:', loginError);
+                    // Registration successful but auto-login failed, redirect to login
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Account created successfully! Please log in.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        navigate('/login');
+                    });
+                }
             } else {
                 // Use SweetAlert2 for error message
                 Swal.fire({
@@ -112,9 +157,9 @@ const RegisterPage = () => {
                 <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-10">
                     <div className="text-center mb-6">
                         <h1 className="text-3xl font-bold mb-1">
-                          <span className="text-blue-600">Tutor</span>
-                           <span className="text-green-600">IT</span>
-                            </h1>
+                            <span className="text-blue-600">Tutor</span>
+                            <span className="text-green-600">IT</span>
+                        </h1>
                         <p className="text-gray-500 text-sm">Connect, Learn, Succeed</p>
                     </div>
 

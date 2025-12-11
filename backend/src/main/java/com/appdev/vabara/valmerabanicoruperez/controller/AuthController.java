@@ -33,16 +33,43 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
         String email = loginRequest.getEmail();
-
-        // In a real application, you would hash passwords and compare them securely
-        // For this example, we'll simulate authentication
+        String password = loginRequest.getPassword();
 
         Map<String, Object> response = new HashMap<>();
 
         try {
-            // Simulate authentication - in a real app, you'd check against database
-            // For demonstration, we'll assume all logins are successful
-            String userType = "student"; // This would be determined by checking the database
+            String userType = null;
+            boolean authenticated = false;
+
+            // Check if user is a student
+            java.util.Optional<Student> studentOpt = studentService.getStudentRepository().findByEmail(email);
+            if (studentOpt.isPresent()) {
+                Student student = studentOpt.get();
+                // In production, use password hashing (BCrypt)
+                if (password.equals(student.getPassword())) {
+                    userType = "student";
+                    authenticated = true;
+                }
+            }
+
+            // If not found as student, check if user is a tutor
+            if (!authenticated) {
+                java.util.Optional<TutorEntity> tutorOpt = tutorService.getTutorRepository().findByEmail(email);
+                if (tutorOpt.isPresent()) {
+                    TutorEntity tutor = tutorOpt.get();
+                    // In production, use password hashing (BCrypt)
+                    if (password.equals(tutor.getPassword())) {
+                        userType = "tutor";
+                        authenticated = true;
+                    }
+                }
+            }
+
+            if (!authenticated) {
+                response.put("success", false);
+                response.put("message", "Invalid email or password");
+                return ResponseEntity.status(401).body(response);
+            }
 
             // Generate JWT token
             String token = jwtUtil.generateToken(email, userType);
@@ -65,8 +92,8 @@ public class AuthController {
                     .body(response);
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "Invalid credentials");
-            return ResponseEntity.status(401).body(response);
+            response.put("message", "An error occurred during login: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
 
