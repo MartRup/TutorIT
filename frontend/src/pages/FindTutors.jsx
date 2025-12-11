@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, BookOpen, Bell, Users } from "lucide-react"
+import { User, BookOpen, Bell, Users, MessageCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import tutorService from "../services/tutorService"
+import { createConversation } from "../services/messageService"
+import Swal from 'sweetalert2'
 import Layout from "../components/Layout"
 
 const TutorCard = ({
@@ -19,6 +21,7 @@ const TutorCard = ({
   availability,
   experience,
   onBookSession,
+  onStartChat,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
@@ -95,13 +98,22 @@ const TutorCard = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-center">
         {onBookSession && (
           <button
             onClick={onBookSession}
-            className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
           >
             Book Session
+          </button>
+        )}
+        {onStartChat && (
+          <button
+            onClick={onStartChat}
+            className="w-12 h-12 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 hover:border-blue-500 transition"
+            title="Start a conversation"
+          >
+            <MessageCircle className="w-5 h-5 text-gray-600" />
           </button>
         )}
       </div>
@@ -191,6 +203,44 @@ export default function FindTutorsPage() {
     }
 
     setFilteredTutors(filtered)
+  }
+
+  const handleStartChat = async (tutor) => {
+    try {
+      const result = await createConversation(tutor);
+
+      if (result.success) {
+        await Swal.fire({
+          title: 'Success!',
+          text: result.message === 'Conversation already exists'
+            ? `You already have a conversation with ${tutor.name}`
+            : `Conversation with ${tutor.name} created!`,
+          icon: 'success',
+          confirmButtonText: 'Go to Messages',
+          showCancelButton: true,
+          cancelButtonText: 'Stay Here'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            navigate('/messages');
+          }
+        });
+      } else {
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to create conversation. Please try again.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      Swal.fire({
+        title: 'Error!',
+        text: 'An unexpected error occurred.',
+        icon: 'error',
+        confirmButtonText: 'OK'
+      });
+    }
   }
 
   if (loading) {
@@ -302,6 +352,7 @@ export default function FindTutorsPage() {
                 key={tutor.tutorId}
                 {...tutor}
                 onBookSession={() => navigate('/book-session')}
+                onStartChat={() => handleStartChat(tutor)}
               />
             ))}
           </div>

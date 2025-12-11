@@ -1,22 +1,20 @@
-// Message Service - Simulates API calls for messaging functionality
+// Message Service - Real API calls for messaging functionality
 
 const BASE_URL = 'http://localhost:8080/api/messages';
-
-// Simulate API delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Get all conversations for the logged-in user
 export const getConversations = async () => {
   try {
-    // Simulate API call delay
-    await delay(500);
+    const response = await fetch(`${BASE_URL}/conversations`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    // Return empty data - conversations will be created when students book sessions
-    // In a real app, this would fetch conversations from the backend
-    return {
-      success: true,
-      data: []
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     return {
       success: false,
@@ -28,13 +26,16 @@ export const getConversations = async () => {
 // Get messages for a specific conversation
 export const getMessages = async (conversationId) => {
   try {
-    await delay(300);
+    const response = await fetch(`${BASE_URL}/conversations/${conversationId}/messages`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-    // Return empty messages - will be populated when real conversations exist
-    return {
-      success: true,
-      data: []
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     return {
       success: false,
@@ -43,24 +44,48 @@ export const getMessages = async (conversationId) => {
   }
 };
 
+// Create a new conversation with a tutor
+export const createConversation = async (tutorData) => {
+  try {
+    const response = await fetch(`${BASE_URL}/conversations`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tutorId: tutorData.tutorId,
+        tutorName: tutorData.name,
+        tutorSubject: tutorData.subjects && tutorData.subjects.length > 0 ? tutorData.subjects[0] : 'Tutor'
+      }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Failed to create conversation'
+    };
+  }
+};
+
 // Send a new message
 export const sendMessage = async (conversationId, messageText) => {
   try {
-    await delay(200);
+    const response = await fetch(`${BASE_URL}/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messageText: messageText
+      }),
+    });
 
-    // In a real app, this would send the message to the backend
-    const newMessage = {
-      id: Date.now(), // Simple ID generation for demo
-      sender: "Me",
-      text: messageText,
-      time: "Just now",
-      isMe: true
-    };
-
-    return {
-      success: true,
-      data: newMessage
-    };
+    const data = await response.json();
+    return data;
   } catch (error) {
     return {
       success: false,
@@ -72,5 +97,6 @@ export const sendMessage = async (conversationId, messageText) => {
 export default {
   getConversations,
   getMessages,
-  sendMessage
+  sendMessage,
+  createConversation
 };
