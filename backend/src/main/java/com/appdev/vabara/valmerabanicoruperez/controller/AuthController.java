@@ -188,19 +188,37 @@ public class AuthController {
                 response.put("userType", userType);
                 response.put("authenticated", true);
 
-                // In a real implementation, you would fetch the full user object from the
-                // database
-                // For now, we'll return mock data
+                // Fetch actual user data from database
                 Map<String, Object> user = new HashMap<>();
-                user.put("id", 1L);
-                user.put("firstName", "John");
-                user.put("lastName", "Doe");
-                user.put("email", email);
-                user.put("phoneNumber", "+1234567890");
-                user.put("bio", "Experienced tutor with 5 years of teaching mathematics and science.");
-                user.put("education", "Master's in Education");
-                user.put("yearsOfExperience", 5);
-                user.put("subjects", new String[] { "Mathematics", "Science" });
+                
+                if ("student".equals(userType)) {
+                    java.util.Optional<Student> studentOpt = studentService.getStudentRepository().findByEmail(email);
+                    if (studentOpt.isPresent()) {
+                        Student student = studentOpt.get();
+                        user.put("id", student.getId());
+                        user.put("name", student.getName());
+                        user.put("email", student.getEmail());
+                        user.put("phoneNumber", ""); // Students don't have phone number in current model
+                        user.put("bio", "");
+                        user.put("education", "");
+                        user.put("yearsOfExperience", 0);
+                        user.put("subjects", new String[] {});
+                    }
+                } else if ("tutor".equals(userType)) {
+                    java.util.Optional<TutorEntity> tutorOpt = tutorService.getTutorRepository().findByEmail(email);
+                    if (tutorOpt.isPresent()) {
+                        TutorEntity tutor = tutorOpt.get();
+                        user.put("id", tutor.getTutorId());
+                        user.put("name", tutor.getName());
+                        user.put("email", tutor.getEmail());
+                        user.put("phoneNumber", ""); // Tutors don't have phone number in current model
+                        user.put("bio", "");
+                        user.put("education", tutor.getInstitution());
+                        user.put("yearsOfExperience", tutor.getExperience());
+                        user.put("subjects", tutor.getExpertiseSubjects() != null ? 
+                            tutor.getExpertiseSubjects().split(",") : new String[] {});
+                    }
+                }
 
                 response.put("user", user);
                 return ResponseEntity.ok(response);

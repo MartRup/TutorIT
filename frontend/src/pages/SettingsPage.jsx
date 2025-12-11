@@ -142,7 +142,7 @@ export default function SettingsPage() {
               expertiseSubjects: subjects.join(', '),
               institution: formData.education,
               experience: parseInt(formData.yearsOfExperience) || 0,
-              hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : currentTutorData.hourlyRate
+              hourlyRate: formData.hourlyRate !== "" ? parseFloat(formData.hourlyRate) : (currentTutorData.hourlyRate || 0)
             };
           } catch (getTutorError) {
             // If tutor doesn't exist, create new tutor data
@@ -155,7 +155,7 @@ export default function SettingsPage() {
               experience: parseInt(formData.yearsOfExperience) || 0,
               hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : 0,
               rating: 0.0,
-              reviews: "",
+              reviews: 0,
               location: "",
               schedule: "",
               availability: "",
