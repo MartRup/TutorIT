@@ -25,8 +25,9 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           } />
+          {/* Find Tutors - Students Only */}
           <Route path="/find-tutors" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['student']}>
               <FindTutorsPage />
             </ProtectedRoute>
           } />
@@ -42,7 +43,11 @@ function App() {
           } />
 
           <Route path="/book-session" element={<BookSession />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
     </Router>

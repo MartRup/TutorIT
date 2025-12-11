@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Header = ({ showNav = true }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userRole, setUserRole] = useState(null);
 
     useEffect(() => {
         // Check if user is logged in by making a request to a protected endpoint
@@ -10,10 +11,17 @@ const Header = ({ showNav = true }) => {
             try {
                 const response = await fetch('http://localhost:8080/api/auth/status', {
                     method: 'GET',
-                    credentials: 'include', // Include cookies in the request
+                    credentials: 'include',
                 });
 
-                setIsLoggedIn(response.ok);
+                if (response.ok) {
+                    setIsLoggedIn(true);
+                    // Get user role from localStorage
+                    const role = localStorage.getItem('userType');
+                    setUserRole(role);
+                } else {
+                    setIsLoggedIn(false);
+                }
             } catch (error) {
                 setIsLoggedIn(false);
             }
@@ -26,12 +34,14 @@ const Header = ({ showNav = true }) => {
         try {
             await fetch('http://localhost:8080/api/auth/logout', {
                 method: 'POST',
-                credentials: 'include', // Include cookies in the request
+                credentials: 'include',
             });
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
             setIsLoggedIn(false);
+            localStorage.removeItem('userType');
+            localStorage.removeItem('userEmail');
             window.location.href = '/';
         }
     };
@@ -45,10 +55,15 @@ const Header = ({ showNav = true }) => {
                 </Link>
 
                 {isLoggedIn && showNav ? (
-                    // Navigation for logged in users
+                    // Navigation for logged in users - role-based
                     <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
                         <Link to="/dashboard" className="hover:text-blue-600 transition">Dashboard</Link>
-                        <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
+                        {userRole === 'student' && (
+                            <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
+                        )}
+                        {userRole === 'tutor' && (
+                            <Link to="/sessions" className="hover:text-blue-600 transition">Sessions</Link>
+                        )}
                         <Link to="/messages" className="hover:text-blue-600 transition">Messages</Link>
                         <button onClick={handleLogout} className="hover:text-blue-600 transition">Logout</button>
                     </nav>

@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, BookOpen, Plus, Edit, Trash2, Bell, Users } from "lucide-react"
+import { User, BookOpen, Bell, Users } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import tutorService from "../services/tutorService"
-import TutorModal from "./components/TutorModal"
 import Layout from "../components/Layout"
 
 const TutorCard = ({
@@ -19,8 +18,6 @@ const TutorCard = ({
   schedule,
   availability,
   experience,
-  onEdit,
-  onDelete,
   onBookSession,
 }) => {
   return (
@@ -102,29 +99,9 @@ const TutorCard = ({
         {onBookSession && (
           <button
             onClick={onBookSession}
-            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition"
           >
             Book Session
-          </button>
-        )}
-
-        {onEdit && (
-          <button
-            onClick={() => onEdit({ tutorId, name, institution, rating, reviews, hourly, subjects, location, schedule, availability, experience })}
-            className="flex-1 bg-blue-600 text-white font-semibold py-2 px-4 rounded hover:bg-blue-700 transition flex items-center justify-center gap-2"
-          >
-            <Edit className="w-4 h-4" />
-            Edit
-          </button>
-        )}
-
-        {onDelete && (
-          <button
-            onClick={() => onDelete(tutorId)}
-            className="flex-1 border-2 border-red-600 text-red-600 font-semibold py-2 px-4 rounded hover:bg-red-50 transition flex items-center justify-center gap-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
           </button>
         )}
       </div>
@@ -138,8 +115,6 @@ export default function FindTutorsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedTutor, setSelectedTutor] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("")
   const [availabilityFilter, setAvailabilityFilter] = useState("")
@@ -218,43 +193,6 @@ export default function FindTutorsPage() {
     setFilteredTutors(filtered)
   }
 
-  const handleOpenModal = (tutor = null) => {
-    setSelectedTutor(tutor)
-    setIsModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setSelectedTutor(null)
-    setIsModalOpen(false)
-  }
-
-  const handleSaveTutor = async (tutorData) => {
-    try {
-      if (selectedTutor) {
-        await tutorService.updateTutor(selectedTutor.tutorId, tutorData)
-      } else {
-        await tutorService.createTutor(tutorData)
-      }
-      fetchTutors()
-      handleCloseModal()
-    } catch (err) {
-      console.error("Error saving tutor:", err)
-      alert("Failed to save tutor. Please try again.")
-    }
-  }
-
-  const handleDeleteTutor = async (tutorId) => {
-    if (window.confirm("Are you sure you want to delete this tutor?")) {
-      try {
-        await tutorService.deleteTutor(tutorId)
-        fetchTutors()
-      } catch (err) {
-        console.error("Error deleting tutor:", err)
-        alert("Failed to delete tutor. Please try again.")
-      }
-    }
-  }
-
   if (loading) {
     return (
       <Layout activePage="find-tutors">
@@ -296,27 +234,12 @@ export default function FindTutorsPage() {
 
   return (
     <Layout activePage="find-tutors">
-      {isModalOpen && (
-        <TutorModal
-          tutor={selectedTutor}
-          onClose={handleCloseModal}
-          onSave={handleSaveTutor}
-        />
-      )}
-
       {/* Main Content */}
       <div className="p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div></div>
           <div className="flex gap-6">
-            <button
-              onClick={() => handleOpenModal()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              New Tutor
-            </button>
             <Bell className="w-6 h-6 text-gray-800 cursor-pointer hover:text-gray-600" />
             <User className="w-6 h-6 text-gray-800 cursor-pointer hover:text-gray-600" />
           </div>
@@ -378,8 +301,6 @@ export default function FindTutorsPage() {
               <TutorCard
                 key={tutor.tutorId}
                 {...tutor}
-                onEdit={handleOpenModal}
-                onDelete={handleDeleteTutor}
                 onBookSession={() => navigate('/book-session')}
               />
             ))}
@@ -395,41 +316,7 @@ export default function FindTutorsPage() {
                 ? "No tutors match your search criteria. Try adjusting your filters."
                 : "There are currently no tutors available."}
             </p>
-            {!searchQuery && !subjectFilter && !availabilityFilter && (
-              <button
-                onClick={() => handleOpenModal()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Your First Tutor
-              </button>
-            )}
-          </div>
-        )}
 
-        {/* Pagination */}
-        {filteredTutors.length > 0 && (
-          <div className="flex flex-col items-center gap-6">
-            <button className="border-2 border-blue-600 text-blue-600 font-semibold py-2 px-8 rounded hover:bg-blue-50 transition">
-              Load More Tutors
-            </button>
-
-            <div className="flex gap-2">
-              <button className="w-8 h-8 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-semibold">
-                1
-              </button>
-              <button className="w-8 h-8 border border-gray-300 rounded hover:bg-gray-100 transition font-semibold">
-                2
-              </button>
-              <button className="w-8 h-8 border border-gray-300 rounded hover:bg-gray-100 transition font-semibold">
-                3
-              </button>
-              <button className="w-8 h-8 border border-gray-300 rounded hover:bg-gray-100 transition font-semibold">
-                4
-              </button>
-
-              <span className="px-2 py-1 text-gray-600">...</span>
-            </div>
           </div>
         )}
       </div>

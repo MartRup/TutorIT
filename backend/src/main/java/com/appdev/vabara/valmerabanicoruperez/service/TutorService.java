@@ -15,6 +15,10 @@ public class TutorService {
         this.tutorRepository = tutorRepository;
     }
 
+    public TutorRepository getTutorRepository() {
+        return tutorRepository;
+    }
+
     // Create
     public TutorEntity addTutor(TutorEntity tutor) {
         return tutorRepository.save(tutor);
