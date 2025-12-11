@@ -26,74 +26,82 @@ const TutorCard = ({
   return (
     <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
       {/* Profile Section */}
-      <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center flex-shrink-0">
-          <User className="w-6 h-6 text-white" />
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+          <User className="w-8 h-8 text-white" />
         </div>
 
         <div className="flex-1">
-          <div className="flex items-center gap-1">
-            <h3 className="font-bold text-black">{name}</h3>
-            <span className="text-blue-600">✓</span>
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-xl text-gray-900 leading-none mb-0">{name}</h3>
+            <span className="text-blue-600 text-lg">✓</span>
           </div>
-          <p className="text-sm text-gray-600">{institution}</p>
+          <p className="text-sm text-gray-600 leading-tight mt-0">{institution}</p>
         </div>
       </div>
 
-      {/* Rating */}
-      <div className="flex items-center gap-2 mb-2">
-        <div className="flex text-yellow-400">
-          {'★'.repeat(Math.floor(rating))}
-          {'☆'.repeat(5 - Math.floor(rating))}
+      {/* Rating and Price Row */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex text-yellow-400 text-lg">
+            {'★'.repeat(Math.floor(rating))}
+            {'☆'.repeat(5 - Math.floor(rating))}
+          </div>
+          <span className="text-sm text-gray-600">({reviews} reviews)</span>
         </div>
-        <span className="text-sm text-gray-600">({reviews} reviews)</span>
+        <p className="font-bold text-2xl text-blue-600">₱{hourly}<span className="text-sm text-gray-600">/hr</span></p>
       </div>
-
-      {/* Hourly Rate */}
-      <p className="font-bold text-blue-600 mb-3">${hourly}/hour</p>
 
       {/* Subjects */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {subjects.length > 0 ? (
-          subjects.map((subject, index) => (
-            <span
-              key={index}
-              className="bg-blue-100 text-blue-600 text-xs px-3 py-1 rounded"
-            >
-              {subject}
-            </span>
-          ))
-        ) : (
-          <span className="text-sm text-gray-500 italic">No subjects listed</span>
-        )}
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {subjects.length > 0 ? (
+            subjects.map((subject, index) => (
+              <span
+                key={index}
+                className="bg-blue-100 text-blue-700 text-sm font-medium px-3 py-1.5 rounded-lg"
+              >
+                {subject}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500 italic">No subjects listed</span>
+          )}
+        </div>
       </div>
 
-      {/* Location and Schedule */}
-      <div className="space-y-2 mb-4 text-sm">
+      {/* Details Grid */}
+      <div className="grid grid-cols-1 gap-3 mb-4 text-sm">
+        {/* Location */}
         <div className="flex items-center gap-2 text-gray-700">
-          <span>📍 {location}</span>
+          <span className="text-lg">📍</span>
+          <span className="font-medium">{location || 'Location not specified'}</span>
         </div>
 
+        {/* Schedule and Availability */}
         <div className="flex items-center gap-2">
-          <span className="text-gray-700">{schedule}</span>
+          <span className="text-lg">📅</span>
+          <span className="text-gray-700 font-medium">{schedule || 'Schedule not specified'}</span>
           <span
             className={
               availability === "Available"
-                ? "bg-green-100 text-green-700"
-                : "bg-yellow-100 text-yellow-700"
+                ? "bg-green-100 text-green-700 font-semibold"
+                : "bg-yellow-100 text-yellow-700 font-semibold"
             }
             style={{
               fontSize: "11px",
-              padding: "2px 8px",
-              borderRadius: "4px",
+              padding: "3px 10px",
+              borderRadius: "12px",
             }}
           >
             {availability}
           </span>
         </div>
 
+        {/* Experience */}
         <div className="flex items-center gap-2 text-gray-700">
-          <span>👤 {experience} years experience</span>
+          <span className="text-lg">👤</span>
+          <span className="font-medium">{experience} years of experience</span>
         </div>
       </div>
 

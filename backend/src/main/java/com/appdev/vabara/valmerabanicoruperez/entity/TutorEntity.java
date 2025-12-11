@@ -26,6 +26,10 @@ public class TutorEntity {
     private String availability;
     private Integer experience;
 
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String profilePicture;
+
     public Long getTutorId() {
         return tutorId;
     }
@@ -129,5 +133,13 @@ public class TutorEntity {
 
     public void setExperience(Integer experience) {
         this.experience = experience;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

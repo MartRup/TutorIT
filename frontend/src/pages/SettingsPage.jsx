@@ -22,7 +22,6 @@ export default function SettingsPage() {
     bio: "",
     education: "",
     yearsOfExperience: "",
-    profilePicture: null,
     rating: "",
     hourlyRate: ""
   });
@@ -31,7 +30,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [previewImage, setPreviewImage] = useState(null);
+
 
   // Load user data when component mounts
   useEffect(() => {
@@ -68,7 +67,7 @@ export default function SettingsPage() {
       };
 
       // If user is a tutor, load their rating and hourly rate
-      if (type === 'TUTOR' && user.id) {
+      if (type && type.toUpperCase() === 'TUTOR' && user.id) {
         try {
           const tutorData = await tutorService.getTutor(user.id);
           parsedUserData.rating = tutorData.rating || "";
@@ -109,49 +108,6 @@ export default function SettingsPage() {
     setSubjects(subjects.filter(subject => subject !== subjectToRemove));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Check file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png'];
-      if (!validTypes.includes(file.type)) {
-        setErrorMessage("Please select a valid image file (JPEG, JPG, GIF, or PNG)");
-        return;
-      }
-
-      // Check file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        setErrorMessage("File size exceeds 2MB limit");
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        profilePicture: file
-      }));
-      setPreviewImage(URL.createObjectURL(file));
-      setSuccessMessage("Profile picture selected successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
-    }
-  };
-
-  const uploadProfilePicture = async (file) => {
-    try {
-      // In a real implementation, you would get the actual user ID
-      // For now, we'll use a mock ID
-      const userId = 1;
-
-      // Upload profile picture using userService
-      const response = await userService.uploadProfilePicture(userId, file);
-      console.log("Profile picture uploaded:", response);
-
-      // Return the URL of the uploaded image
-      return response.imageUrl || URL.createObjectURL(file);
-    } catch (error) {
-      console.error("Error uploading profile picture:", error);
-      throw error;
-    }
-  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -159,80 +115,64 @@ export default function SettingsPage() {
     setErrorMessage("");
 
     try {
-      // Upload profile picture if selected
-      let profilePictureUrl = null;
-      if (formData.profilePicture) {
-        try {
-          profilePictureUrl = await uploadProfilePicture(formData.profilePicture);
-          console.log("Profile picture uploaded:", profilePictureUrl);
-        } catch (uploadError) {
-          console.error("Error uploading profile picture:", uploadError);
-          setErrorMessage("Failed to upload profile picture. Other changes will still be saved.");
-          // Continue with saving other data even if picture upload fails
-        }
+      // Get current user data to get the actual ID
+      const currentUserData = await userService.getCurrentUser();
+      const userId = currentUserData.user?.id;
+
+      if (!userId) {
+        throw new Error("User ID not found");
       }
 
-      // Prepare user data for saving
-      const userData = {
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        bio: formData.bio,
-        education: formData.education,
-        yearsOfExperience: parseInt(formData.yearsOfExperience) || 0
-      };
-
-      // In a real implementation, you would get the actual user ID
-      // For now, we'll use a mock ID
-      const userId = 1;
-
-      // Save user data to backend
-      const response = await userService.updateUserProfile(userId, userData);
-      console.log("User data saved:", response);
-
-      // If user is a tutor, save their rating and hourly rate
-      if (userType === 'TUTOR') {
+      // If user is a tutor, save to tutor table
+      if (userType && userType.toUpperCase() === 'TUTOR') {
         try {
-          const tutorUpdateData = {};
+          // Get full tutor data first
+          const currentTutorData = await tutorService.getTutor(userId);
 
-          // Add rating if provided
-          if (formData.rating) {
-            const rating = parseFloat(formData.rating);
-            if (rating >= 0 && rating <= 5) {
-              tutorUpdateData.rating = rating;
-            }
-          }
+          // Prepare updated tutor data
+          const updatedTutorData = {
+            ...currentTutorData,
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            expertiseSubjects: subjects.join(', '),
+            institution: formData.education,
+            experience: parseInt(formData.yearsOfExperience) || 0,
+            hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : currentTutorData.hourlyRate
+          };
 
-          // Add hourly rate if provided
-          if (formData.hourlyRate) {
-            const hourlyRate = parseFloat(formData.hourlyRate);
-            if (hourlyRate > 0) {
-              tutorUpdateData.hourlyRate = hourlyRate;
-            }
-          }
-
-          // Update tutor data if there are changes
-          if (Object.keys(tutorUpdateData).length > 0) {
-            // Get full tutor data first
-            const currentTutorData = await tutorService.getTutor(userId);
-            const updatedTutorData = {
-              ...currentTutorData,
-              ...tutorUpdateData,
-              name: `${formData.firstName} ${formData.lastName}`,
-              email: formData.email,
-              expertiseSubjects: subjects.join(', '),
-              institution: formData.education,
-              experience: parseInt(formData.yearsOfExperience) || 0
-            };
-
-            await tutorService.updateTutor(userId, updatedTutorData);
-            console.log("Tutor data updated:", tutorUpdateData);
-          }
+          await tutorService.updateTutor(userId, updatedTutorData);
+          console.log("Tutor data updated successfully");
         } catch (tutorError) {
           console.error("Error updating tutor data:", tutorError);
-          setErrorMessage("Failed to update tutor data. Other changes were saved.");
+          setErrorMessage("Failed to update tutor data. Please try again.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        // User is a student, save to student table
+        try {
+          const studentData = {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            phoneNumber: formData.phoneNumber,
+            bio: formData.bio
+          };
+
+          await userService.updateUserProfile(userId, studentData);
+          console.log("Student data updated successfully");
+        } catch (studentError) {
+          console.error("Error updating student data:", studentError);
+          setErrorMessage("Failed to update student data. Please try again.");
+          setLoading(false);
+          return;
         }
       }
+
+      // Clear the file object from formData after successful save
+      setFormData(prev => ({ ...prev, profilePicture: null }));
+
+      // Reload user data to get the saved profile picture from database
+      await loadUserData();
 
       setSuccessMessage("Changes saved successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -278,44 +218,11 @@ export default function SettingsPage() {
           <div className="bg-blue-50 rounded-xl p-8 space-y-8">
             {/* Profile Information Section */}
             <section>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-2">
                 <User className="h-6 w-6 text-gray-700" />
                 <h3 className="text-2xl font-bold text-gray-900">Profile Information</h3>
               </div>
-              <p className="text-gray-600 mb-6">Update your personal information and profile details.</p>
-
-              {/* Profile Picture Section */}
-              <div className="flex items-start gap-6 mb-8">
-                <div className="relative">
-                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                    {previewImage ? (
-                      <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-12 h-12 text-gray-500" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <label className="inline-block">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/gif,image/png"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      id="profile-picture"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => document.getElementById('profile-picture').click()}
-                      className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <Camera className="h-4 w-4 text-gray-700" />
-                      <span className="text-gray-700 font-medium">Change Photo</span>
-                    </button>
-                  </label>
-                  <p className="text-sm text-gray-500 mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
-                </div>
-              </div>
+              <p className="text-gray-600 mb-8">Update your personal information and profile details.</p>
 
               {/* Form Fields */}
               <div className="grid grid-cols-2 gap-6 mb-6">
@@ -387,65 +294,44 @@ export default function SettingsPage() {
               </div>
             </section>
 
-            {/* Education & Expertise Section */}
-            <section>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Education & Expertise</h3>
+            {/* Education & Expertise Section - Only for tutors */}
+            {userType && userType.toUpperCase() === 'TUTOR' && (
+              <section>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">Education & Expertise</h3>
 
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Education
-                  </label>
-                  <input
-                    type="text"
-                    name="education"
-                    value={formData.education}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="e.g., Bachelor's in Mathematics"
-                  />
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Education
+                    </label>
+                    <input
+                      type="text"
+                      name="education"
+                      value={formData.education}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      placeholder="e.g., Bachelor's in Mathematics"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      name="yearsOfExperience"
+                      value={formData.yearsOfExperience}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      placeholder="e.g., 5"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Years of Experience
-                  </label>
-                  <input
-                    type="number"
-                    name="yearsOfExperience"
-                    value={formData.yearsOfExperience}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="e.g., 5"
-                  />
-                </div>
-              </div>
 
-              {/* Rating field - Only for tutors */}
-              {userType === 'TUTOR' && (
+                {/* Hourly Rate field */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Rating (0-5)
-                  </label>
-                  <input
-                    type="number"
-                    name="rating"
-                    value={formData.rating}
-                    onChange={handleInputChange}
-                    min="0"
-                    max="5"
-                    step="0.1"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="e.g., 4.5"
-                  />
-                  <p className="text-sm text-gray-500 mt-2">Enter your rating from 0 to 5 (e.g., 4.5). This will be displayed to students.</p>
-                </div>
-              )}
-
-              {/* Hourly Rate field - Only for tutors */}
-              {userType === 'TUTOR' && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hourly Rate ($)
+                    Hourly Rate (₱)
                   </label>
                   <input
                     type="number"
@@ -455,58 +341,58 @@ export default function SettingsPage() {
                     min="0"
                     step="0.01"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    placeholder="e.g., 50.00"
+                    placeholder="e.g., 500.00"
                   />
                   <p className="text-sm text-gray-500 mt-2">Set your hourly rate (price per hour). This will be displayed to students.</p>
                 </div>
-              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subjects
-                </label>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {subjects.map((subject) => (
-                    <span
-                      key={subject}
-                      className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm"
-                    >
-                      {subject}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSubject(subject)}
-                        className="hover:text-blue-800"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subjects
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {subjects.map((subject) => (
+                      <span
+                        key={subject}
+                        className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm"
                       >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
+                        {subject}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubject(subject)}
+                          className="hover:text-blue-800"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newSubject}
+                      onChange={(e) => setNewSubject(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSubject();
+                        }
+                      }}
+                      placeholder="Enter subject name"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSubject}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Add subject</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newSubject}
-                    onChange={(e) => setNewSubject(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddSubject();
-                      }
-                    }}
-                    placeholder="Enter subject name"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddSubject}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add subject</span>
-                  </button>
-                </div>
-              </div>
-            </section>
+              </section>
+            )}
           </div>
 
           {/* Action Buttons */}
