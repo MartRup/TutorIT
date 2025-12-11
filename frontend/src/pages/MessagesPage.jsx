@@ -71,7 +71,7 @@ export default function MessagesPage() {
   useEffect(() => {
     const loadMessages = async () => {
       if (!selectedConversation) return;
-      
+
       try {
         const result = await getMessages(selectedConversation);
         if (result.success) {
@@ -88,7 +88,7 @@ export default function MessagesPage() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (messageInput.trim() === "" || !selectedConversation) return;
-    
+
     setSending(true);
     try {
       const result = await sendMessage(selectedConversation, messageInput);
@@ -119,69 +119,88 @@ export default function MessagesPage() {
     <Layout activePage="messages">
       {/* Messages Layout */}
       <div className="flex flex-1 overflow-hidden">
-        
+
         {/* Conversation List */}
         <div className="w-80 border-r border-gray-200 flex flex-col bg-gray-50">
           <div className="p-6">
             <h2 className="text-xl font-bold mb-4">Messages</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input 
-                type="text" 
-                placeholder="Search conversations..." 
+              <input
+                type="text"
+                placeholder="Search conversations..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
               />
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {conversations.map((conv) => {
-              // Find matching tutor for this conversation
-              const matchingTutor = tutors.find(tutor => tutor.tutorId === conv.tutorId);
-              
-              return (
-                <div 
-                  key={conv.id}
-                  onClick={() => setSelectedConversation(conv.id)}
-                  className={`p-4 hover:bg-white cursor-pointer transition-colors border-l-4 ${selectedConversation === conv.id ? 'bg-white border-blue-500' : 'border-transparent'}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="font-semibold text-gray-600">{conv.name.charAt(0)}</span>
+            {conversations.length > 0 ? (
+              conversations.map((conv) => {
+                // Find matching tutor for this conversation
+                const matchingTutor = tutors.find(tutor => tutor.tutorId === conv.tutorId);
+
+                return (
+                  <div
+                    key={conv.id}
+                    onClick={() => setSelectedConversation(conv.id)}
+                    className={`p-4 hover:bg-white cursor-pointer transition-colors border-l-4 ${selectedConversation === conv.id ? 'bg-white border-blue-500' : 'border-transparent'}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="relative">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="font-semibold text-gray-600">{conv.name.charAt(0)}</span>
+                        </div>
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${conv.status.includes('Online') ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                       </div>
-                      <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${conv.status.includes('Online') ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-1">
-                        <h3 className="font-semibold text-gray-900 truncate">{conv.name}</h3>
-                        <span className="text-xs text-gray-500">{conv.time}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{conv.role}</span>
-                        {conv.unread > 0 && (
-                          <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
-                            {conv.unread}
-                          </span>
-                        )}
-                        {/* Display tutor rating if available */}
-                        {matchingTutor && matchingTutor.rating > 0 && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-yellow-500">★</span>
-                            <span className="text-xs text-gray-600">{matchingTutor.rating} ({matchingTutor.reviews})</span>
-                          </div>
-                        )}
-                        {/* Display hourly rate if available */}
-                        {matchingTutor && (
-                          <span className="text-xs text-blue-600 font-medium">${matchingTutor.hourly}/hr</span>
-                        )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-1">
+                          <h3 className="font-semibold text-gray-900 truncate">{conv.name}</h3>
+                          <span className="text-xs text-gray-500">{conv.time}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{conv.role}</span>
+                          {conv.unread > 0 && (
+                            <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                              {conv.unread}
+                            </span>
+                          )}
+                          {/* Display tutor rating if available */}
+                          {matchingTutor && matchingTutor.rating > 0 && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-yellow-500">★</span>
+                              <span className="text-xs text-gray-600">{matchingTutor.rating} ({matchingTutor.reviews})</span>
+                            </div>
+                          )}
+                          {/* Display hourly rate if available */}
+                          {matchingTutor && (
+                            <span className="text-xs text-blue-600 font-medium">${matchingTutor.hourly}/hr</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
+                );
+              })
+            ) : (
+              // Empty state when no conversations exist
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                  <MessageCircle className="w-10 h-10 text-blue-400" />
                 </div>
-              );
-            })}
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Messages Yet</h3>
+                <p className="text-sm text-gray-500 mb-6 max-w-xs">
+                  You haven't booked any tutoring sessions yet. Book a session with a tutor to start messaging!
+                </p>
+                <button
+                  onClick={() => navigate('/find-tutors')}
+                  className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Find Tutors
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -243,12 +262,11 @@ export default function MessagesPage() {
                       </div>
                     )}
                     <div>
-                      <div 
-                        className={`p-4 rounded-2xl ${
-                          msg.isMe 
-                            ? 'bg-blue-600 text-white rounded-br-none' 
+                      <div
+                        className={`p-4 rounded-2xl ${msg.isMe
+                            ? 'bg-blue-600 text-white rounded-br-none'
                             : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                        }`}
+                          }`}
                       >
                         <p className="text-sm leading-relaxed">{msg.text}</p>
                       </div>
@@ -267,19 +285,19 @@ export default function MessagesPage() {
                 <button type="button" className="p-2 text-gray-400 hover:text-gray-600">
                   <Paperclip className="w-5 h-5" />
                 </button>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Type your message..." 
+                  placeholder="Type your message..."
                   className="flex-1 bg-transparent border-none focus:ring-0 text-gray-800 placeholder-gray-500"
                   disabled={sending}
                 />
                 <button type="button" className="p-2 text-gray-400 hover:text-gray-600">
                   <Smile className="w-5 h-5" />
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className={`p-2 text-white rounded-lg transition-colors ${sending ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
                   disabled={!messageInput.trim() || sending}
                 >
