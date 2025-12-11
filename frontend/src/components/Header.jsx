@@ -12,13 +12,13 @@ const Header = ({ showNav = true }) => {
                     method: 'GET',
                     credentials: 'include', // Include cookies in the request
                 });
-                
+
                 setIsLoggedIn(response.ok);
             } catch (error) {
                 setIsLoggedIn(false);
             }
         };
-        
+
         checkAuthStatus();
     }, []);
 
@@ -50,7 +50,6 @@ const Header = ({ showNav = true }) => {
                         <Link to="/dashboard" className="hover:text-blue-600 transition">Dashboard</Link>
                         <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
                         <Link to="/messages" className="hover:text-blue-600 transition">Messages</Link>
-                        <Link to="/students" className="hover:text-blue-600 transition">Students</Link>
                         <button onClick={handleLogout} className="hover:text-blue-600 transition">Logout</button>
                     </nav>
                 ) : (
