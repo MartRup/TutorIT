@@ -74,6 +74,8 @@ export default function SettingsPage() {
           parsedUserData.hourlyRate = tutorData.hourlyRate || "";
         } catch (error) {
           console.error("Error loading tutor data:", error);
+          // If tutor record doesn't exist yet, we'll create it when saving
+          // For now, we just leave the fields empty
         }
       }
 
@@ -126,19 +128,40 @@ export default function SettingsPage() {
       // If user is a tutor, save to tutor table
       if (userType && userType.toUpperCase() === 'TUTOR') {
         try {
-          // Get full tutor data first
-          const currentTutorData = await tutorService.getTutor(userId);
-
-          // Prepare updated tutor data
-          const updatedTutorData = {
-            ...currentTutorData,
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            expertiseSubjects: subjects.join(', '),
-            institution: formData.education,
-            experience: parseInt(formData.yearsOfExperience) || 0,
-            hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : currentTutorData.hourlyRate
-          };
+          let updatedTutorData;
+          
+          try {
+            // Try to get existing tutor data first
+            const currentTutorData = await tutorService.getTutor(userId);
+            
+            // Prepare updated tutor data
+            updatedTutorData = {
+              ...currentTutorData,
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              expertiseSubjects: subjects.join(', '),
+              institution: formData.education,
+              experience: parseInt(formData.yearsOfExperience) || 0,
+              hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : currentTutorData.hourlyRate
+            };
+          } catch (getTutorError) {
+            // If tutor doesn't exist, create new tutor data
+            updatedTutorData = {
+              id: userId, // Use the same ID as the user
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              expertiseSubjects: subjects.join(', '),
+              institution: formData.education,
+              experience: parseInt(formData.yearsOfExperience) || 0,
+              hourlyRate: formData.hourlyRate ? parseFloat(formData.hourlyRate) : 0,
+              rating: 0.0,
+              reviews: "",
+              location: "",
+              schedule: "",
+              availability: "",
+              password: "" // Password should be handled separately
+            };
+          }
 
           await tutorService.updateTutor(userId, updatedTutorData);
           console.log("Tutor data updated successfully");
