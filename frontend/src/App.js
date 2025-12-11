@@ -6,6 +6,8 @@ import RegisterPage from './pages/RegisterPage';
 import FindTutorsPage from './pages/FindTutors';
 import MessagesPage from './pages/MessagesPage';
 import SessionsPage from './pages/SessionsPage';
+import StudentSessionsPage from './pages/StudentSessionsPage';
+import TutorSessionsPage from './pages/TutorSessionsPage';
 import BookSession from './pages/BookSession';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
@@ -36,9 +38,22 @@ function App() {
               <MessagesPage />
             </ProtectedRoute>
           } />
+          {/* Generic Sessions Page - Redirects based on role */}
           <Route path="/sessions" element={
             <ProtectedRoute>
-              <SessionsPage />
+              <StudentSessionsPage />
+            </ProtectedRoute>
+          } />
+          {/* Student Sessions Page */}
+          <Route path="/student-sessions" element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentSessionsPage />
+            </ProtectedRoute>
+          } />
+          {/* Tutor Sessions Page */}
+          <Route path="/tutor-sessions" element={
+            <ProtectedRoute allowedRoles={['tutor']}>
+              <TutorSessionsPage />
             </ProtectedRoute>
           } />
 

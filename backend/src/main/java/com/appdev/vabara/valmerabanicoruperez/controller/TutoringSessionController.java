@@ -3,6 +3,7 @@ package com.appdev.vabara.valmerabanicoruperez.controller;
 import com.appdev.vabara.valmerabanicoruperez.entity.TutoringSessionEntity;
 import com.appdev.vabara.valmerabanicoruperez.service.TutoringSessionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/tutoring-sessions")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class TutoringSessionController {
 
     private final TutoringSessionService tutoringSessionService;
@@ -49,7 +51,8 @@ public class TutoringSessionController {
             @PathVariable("id") String sessionId,
             @RequestBody TutoringSessionEntity updatedSession) {
         try {
-            TutoringSessionEntity tutoringSession = tutoringSessionService.updateTutoringSession(sessionId, updatedSession);
+            TutoringSessionEntity tutoringSession = tutoringSessionService.updateTutoringSession(sessionId,
+                    updatedSession);
             return ResponseEntity.ok(tutoringSession);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
