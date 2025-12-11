@@ -42,7 +42,7 @@ const LoginPage = () => {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    navigate("/dashboard");
+                    navigate("/sessions");
                 });
             } else {
                 // Use SweetAlert2 for error message
@@ -123,20 +123,6 @@ const LoginPage = () => {
                             </div>
                         </div>
 
-                        {/* Remember + Forgot */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                                />
-                                <label className="ml-2 block text-sm text-gray-900">Remember me</label>
-                            </div>
-
-                            <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                                Forgot password?
-                            </a>
-                        </div>
 
                         {/* Submit Button */}
                         <button
@@ -149,22 +135,6 @@ const LoginPage = () => {
                         </button>
                     </form>
 
-                    {/* OR Continue with */}
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">or continue with</span>
-                            </div>
-                        </div>
-
-                        {/* OAuth buttons */}
-                        <div className="mt-6 grid grid-cols-2 gap-3">
-                            <button className="oauth-btn">Google</button>
-                            <button className="oauth-btn">GitHub</button>
-                        </div>
 
                         {/* Register Link */}
                         <div className="mt-6 text-center text-sm text-gray-500">
@@ -177,8 +147,7 @@ const LoginPage = () => {
 
                 </div>
             </div>
-        </div>
-    );
+     );
 };
 
 export default LoginPage;
