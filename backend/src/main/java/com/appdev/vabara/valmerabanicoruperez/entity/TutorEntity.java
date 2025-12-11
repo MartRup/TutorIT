@@ -11,7 +11,10 @@ public class TutorEntity {
     private Long tutorId;
 
     private String name;
+
+    @Column(unique = true)
     private String email;
+
     private String password;
     private String expertiseSubjects;
     private Double hourlyRate;

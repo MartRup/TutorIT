@@ -10,6 +10,7 @@ const RegisterPage = () => {
         firstName: '',
         lastName: '',
         email: '',
+        institution: '',
         password: '',
         confirmPassword: ''
     });
@@ -49,7 +50,7 @@ const RegisterPage = () => {
                     name: `${formData.firstName} ${formData.lastName}`,
                     email: formData.email,
                     password: formData.password,
-                    age: 20 // Default age, you might want to add an age field to the form
+                    age: 20 // Default age
                 };
             } else {
                 url = 'http://localhost:8080/api/auth/register/tutor';
@@ -57,8 +58,9 @@ const RegisterPage = () => {
                     name: `${formData.firstName} ${formData.lastName}`,
                     email: formData.email,
                     password: formData.password,
-                    expertiseSubjects: '', // You might want to add this field to the form
-                    hourlyRate: 0.0 // You might want to add this field to the form
+                    institution: formData.institution || 'Not specified',
+                    expertiseSubjects: '',
+                    hourlyRate: 0.0
                 };
             }
 
@@ -226,6 +228,22 @@ const RegisterPage = () => {
                                 required
                             />
                         </div>
+
+                        {/* Institution - Only for Tutors */}
+                        {userType === 'tutor' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Institution</label>
+                                <input
+                                    type="text"
+                                    name="institution"
+                                    value={formData.institution}
+                                    onChange={handleChange}
+                                    className="block w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="e.g., University of the Philippines"
+                                    required
+                                />
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
