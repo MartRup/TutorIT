@@ -151,8 +151,8 @@ const TutorITLanding = () => {
           {/* Brand Column */}
           <div className="col-span-1">
             <div className="text-2xl font-bold tracking-tight mb-4">
-              <span className="text-blue-500">Tutor</span>
-              <span className="text-green-500">IT</span>
+              <span className="text-blue-600">Tutor</span>
+              <span className="text-green-600">IT</span>
             </div>
             <p className="text-slate-400">Peer learning, simplified.</p>
           </div>

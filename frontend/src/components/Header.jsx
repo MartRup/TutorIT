@@ -51,13 +51,13 @@ const Header = ({ showNav = true }) => {
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
                 <Link to="/" className="text-2xl font-bold tracking-tight">
                     <span className="text-blue-600">Tutor</span>
-                    <span className="text-green-500">IT</span>
+                    <span className="text-green-600">IT</span>
                 </Link>
 
                 {isLoggedIn && showNav ? (
                     // Navigation for logged in users - role-based
                     <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
-                        <Link to="/dashboard" className="hover:text-blue-600 transition">Dashboard</Link>
+
                         {userRole === 'student' && (
                             <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
                         )}

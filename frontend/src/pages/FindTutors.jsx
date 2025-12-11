@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { User, BookOpen, Bell, Users, MessageCircle } from "lucide-react"
+import { User, BookOpen, Users, MessageCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import tutorService from "../services/tutorService"
 import { createConversation } from "../services/messageService"
@@ -295,13 +295,7 @@ export default function FindTutorsPage() {
       {/* Main Content */}
       <div className="p-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div></div>
-          <div className="flex gap-6">
-            <Bell className="w-6 h-6 text-gray-800 cursor-pointer hover:text-gray-600" />
-            <User className="w-6 h-6 text-gray-800 cursor-pointer hover:text-gray-600" />
-          </div>
-        </div>
+
 
         {/* Page Title */}
         <div className="mb-8">

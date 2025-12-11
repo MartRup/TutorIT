@@ -103,7 +103,7 @@ const Layout = ({ children, activePage = "dashboard" }) => {
         <aside className="w-56 border-r border-gray-200 p-6 min-h-screen">
           <h1 className="mb-8 text-2xl font-bold">
             <span className="text-blue-600">Tutor</span>
-            <span>IT</span>
+            <span className="text-green-600">IT</span>
           </h1>
 
           {/* Role Badge */}
