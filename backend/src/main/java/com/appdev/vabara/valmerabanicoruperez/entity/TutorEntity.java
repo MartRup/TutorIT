@@ -19,7 +19,7 @@ public class TutorEntity {
     private String expertiseSubjects;
     private Double hourlyRate;
     private String institution;
-    private Integer rating;
+    private Double rating;
     private Integer reviews;
     private String location;
     private String schedule;
@@ -83,11 +83,11 @@ public class TutorEntity {
         this.institution = institution;
     }
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 

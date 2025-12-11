@@ -54,6 +54,13 @@ public class TutorService {
         return tutorRepository.save(existingTutor);
     }
 
+    // Update Rating only
+    public TutorEntity updateTutorRating(Long id, Double rating) {
+        TutorEntity existingTutor = findTutorById(id);
+        existingTutor.setRating(rating);
+        return tutorRepository.save(existingTutor);
+    }
+
     // Delete
     public void deleteTutor(Long id) {
         if (!tutorRepository.existsById(id)) {

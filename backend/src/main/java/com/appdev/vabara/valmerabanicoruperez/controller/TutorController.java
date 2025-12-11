@@ -40,9 +40,20 @@ public class TutorController {
 
     @PutMapping("/{id}")
     public ResponseEntity<TutorEntity> updateTutor(@PathVariable("id") Long tutorId,
-                                             @RequestBody TutorEntity updatedTutor) {
+            @RequestBody TutorEntity updatedTutor) {
         try {
             TutorEntity tutor = tutorService.updateTutor(tutorId, updatedTutor);
+            return ResponseEntity.ok(tutor);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/{id}/rating")
+    public ResponseEntity<TutorEntity> updateTutorRating(@PathVariable("id") Long tutorId,
+            @RequestBody Double rating) {
+        try {
+            TutorEntity tutor = tutorService.updateTutorRating(tutorId, rating);
             return ResponseEntity.ok(tutor);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

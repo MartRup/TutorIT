@@ -8,10 +8,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import userService from "../services/userService";
+import tutorService from "../services/tutorService";
 import Layout from "../components/Layout";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const [userType, setUserType] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -20,7 +22,9 @@ export default function SettingsPage() {
     bio: "",
     education: "",
     yearsOfExperience: "",
-    profilePicture: null
+    profilePicture: null,
+    rating: "",
+    hourlyRate: ""
   });
   const [subjects, setSubjects] = useState(["Mathematics", "Science"]);
   const [newSubject, setNewSubject] = useState("");
@@ -38,15 +42,19 @@ export default function SettingsPage() {
     try {
       const userData = await userService.getCurrentUser();
       console.log("User data loaded:", userData);
-      
+
+      // Get user type from localStorage
+      const type = localStorage.getItem('userType');
+      setUserType(type);
+
       // Parse user data from the response
       const user = userData.user || {};
-      
+
       // Split name into first and last name
       const nameParts = user.name ? user.name.split(' ') : [];
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
+
       const parsedUserData = {
         firstName: firstName,
         lastName: lastName,
@@ -54,11 +62,24 @@ export default function SettingsPage() {
         phoneNumber: user.phoneNumber || "",
         bio: user.bio || "",
         education: user.education || "",
-        yearsOfExperience: user.yearsOfExperience || ""
+        yearsOfExperience: user.yearsOfExperience || "",
+        rating: "",
+        hourlyRate: ""
       };
-      
+
+      // If user is a tutor, load their rating and hourly rate
+      if (type === 'TUTOR' && user.id) {
+        try {
+          const tutorData = await tutorService.getTutor(user.id);
+          parsedUserData.rating = tutorData.rating || "";
+          parsedUserData.hourlyRate = tutorData.hourlyRate || "";
+        } catch (error) {
+          console.error("Error loading tutor data:", error);
+        }
+      }
+
       setFormData(parsedUserData);
-      
+
       // Load subjects if available
       if (user.subjects && Array.isArray(user.subjects)) {
         setSubjects(user.subjects);
@@ -97,13 +118,13 @@ export default function SettingsPage() {
         setErrorMessage("Please select a valid image file (JPEG, JPG, GIF, or PNG)");
         return;
       }
-      
+
       // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         setErrorMessage("File size exceeds 2MB limit");
         return;
       }
-      
+
       setFormData(prev => ({
         ...prev,
         profilePicture: file
@@ -119,11 +140,11 @@ export default function SettingsPage() {
       // In a real implementation, you would get the actual user ID
       // For now, we'll use a mock ID
       const userId = 1;
-      
+
       // Upload profile picture using userService
       const response = await userService.uploadProfilePicture(userId, file);
       console.log("Profile picture uploaded:", response);
-      
+
       // Return the URL of the uploaded image
       return response.imageUrl || URL.createObjectURL(file);
     } catch (error) {
@@ -136,7 +157,7 @@ export default function SettingsPage() {
     setLoading(true);
     setSuccessMessage("");
     setErrorMessage("");
-    
+
     try {
       // Upload profile picture if selected
       let profilePictureUrl = null;
@@ -150,7 +171,7 @@ export default function SettingsPage() {
           // Continue with saving other data even if picture upload fails
         }
       }
-      
+
       // Prepare user data for saving
       const userData = {
         name: `${formData.firstName} ${formData.lastName}`,
@@ -160,15 +181,59 @@ export default function SettingsPage() {
         education: formData.education,
         yearsOfExperience: parseInt(formData.yearsOfExperience) || 0
       };
-      
+
       // In a real implementation, you would get the actual user ID
       // For now, we'll use a mock ID
       const userId = 1;
-      
+
       // Save user data to backend
       const response = await userService.updateUserProfile(userId, userData);
       console.log("User data saved:", response);
-      
+
+      // If user is a tutor, save their rating and hourly rate
+      if (userType === 'TUTOR') {
+        try {
+          const tutorUpdateData = {};
+
+          // Add rating if provided
+          if (formData.rating) {
+            const rating = parseFloat(formData.rating);
+            if (rating >= 0 && rating <= 5) {
+              tutorUpdateData.rating = rating;
+            }
+          }
+
+          // Add hourly rate if provided
+          if (formData.hourlyRate) {
+            const hourlyRate = parseFloat(formData.hourlyRate);
+            if (hourlyRate > 0) {
+              tutorUpdateData.hourlyRate = hourlyRate;
+            }
+          }
+
+          // Update tutor data if there are changes
+          if (Object.keys(tutorUpdateData).length > 0) {
+            // Get full tutor data first
+            const currentTutorData = await tutorService.getTutor(userId);
+            const updatedTutorData = {
+              ...currentTutorData,
+              ...tutorUpdateData,
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              expertiseSubjects: subjects.join(', '),
+              institution: formData.education,
+              experience: parseInt(formData.yearsOfExperience) || 0
+            };
+
+            await tutorService.updateTutor(userId, updatedTutorData);
+            console.log("Tutor data updated:", tutorUpdateData);
+          }
+        } catch (tutorError) {
+          console.error("Error updating tutor data:", tutorError);
+          setErrorMessage("Failed to update tutor data. Other changes were saved.");
+        }
+      }
+
       setSuccessMessage("Changes saved successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
@@ -188,258 +253,299 @@ export default function SettingsPage() {
     <Layout activePage="settings">
       {/* Main Content */}
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2">Settings</h2>
-              <p className="text-gray-600">Manage your account settings and tutoring preferences.</p>
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold mb-2">Settings</h2>
+            <p className="text-gray-600">Manage your account settings and tutoring preferences.</p>
+          </div>
+
+          {/* Success/Error Messages */}
+          {successMessage && (
+            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+              {successMessage}
             </div>
+          )}
 
-            {/* Success/Error Messages */}
-            {successMessage && (
-              <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
-                {successMessage}
+          {errorMessage && (
+            <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+              {errorMessage}
+            </div>
+          )}
+
+          {/* Main Container */}
+          <div className="bg-blue-50 rounded-xl p-8 space-y-8">
+            {/* Profile Information Section */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <User className="h-6 w-6 text-gray-700" />
+                <h3 className="text-2xl font-bold text-gray-900">Profile Information</h3>
               </div>
-            )}
-            
-            {errorMessage && (
-              <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
-                {errorMessage}
-              </div>
-            )}
+              <p className="text-gray-600 mb-6">Update your personal information and profile details.</p>
 
-            {/* Main Container */}
-            <div className="bg-blue-50 rounded-xl p-8 space-y-8">
-              {/* Profile Information Section */}
-              <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <User className="h-6 w-6 text-gray-700" />
-                  <h3 className="text-2xl font-bold text-gray-900">Profile Information</h3>
-                </div>
-                <p className="text-gray-600 mb-6">Update your personal information and profile details.</p>
-
-                {/* Profile Picture Section */}
-                <div className="flex items-start gap-6 mb-8">
-                  <div className="relative">
-                    <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
-                      {previewImage ? (
-                        <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-12 h-12 text-gray-500" />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <label className="inline-block">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/jpg,image/gif,image/png"
-                        onChange={handleFileChange}
-                        className="hidden"
-                        id="profile-picture"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => document.getElementById('profile-picture').click()}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <Camera className="h-4 w-4 text-gray-700" />
-                        <span className="text-gray-700 font-medium">Change Photo</span>
-                      </button>
-                    </label>
-                    <p className="text-sm text-gray-500 mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
+              {/* Profile Picture Section */}
+              <div className="flex items-start gap-6 mb-8">
+                <div className="relative">
+                  <div className="w-24 h-24 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
+                    {previewImage ? (
+                      <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-gray-500" />
+                    )}
                   </div>
                 </div>
-
-                {/* Form Fields */}
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      First Name
-                    </label>
+                <div className="flex-1">
+                  <label className="inline-block">
                     <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    BIO
-                  </label>
-                  <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
-                    placeholder="Tell us about yourself..."
-                  />
-                </div>
-              </section>
-
-              {/* Education & Expertise Section */}
-              <section>
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Education & Expertise</h3>
-
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Education
-                    </label>
-                    <input
-                      type="text"
-                      name="education"
-                      value={formData.education}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                      placeholder="e.g., Bachelor's in Mathematics"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Years of Experience
-                    </label>
-                    <input
-                      type="number"
-                      name="yearsOfExperience"
-                      value={formData.yearsOfExperience}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                      placeholder="e.g., 5"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subjects
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {subjects.map((subject) => (
-                      <span
-                        key={subject}
-                        className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm"
-                      >
-                        {subject}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSubject(subject)}
-                          className="hover:text-blue-800"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newSubject}
-                      onChange={(e) => setNewSubject(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddSubject();
-                        }
-                      }}
-                      placeholder="Enter subject name"
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/gif,image/png"
+                      onChange={handleFileChange}
+                      className="hidden"
+                      id="profile-picture"
                     />
                     <button
                       type="button"
-                      onClick={handleAddSubject}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={() => document.getElementById('profile-picture').click()}
+                      className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <Plus className="h-4 w-4" />
-                      <span>Add subject</span>
+                      <Camera className="h-4 w-4 text-gray-700" />
+                      <span className="text-gray-700 font-medium">Change Photo</span>
                     </button>
-                  </div>
+                  </label>
+                  <p className="text-sm text-gray-500 mt-2">JPG, GIF or PNG. Max size of 2MB.</p>
                 </div>
-              </section>
-            </div>
+              </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-4 mt-8">
-              <button
-                onClick={handleCancel}
-                className="px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition-colors"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </div>
+              {/* Form Fields */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  BIO
+                </label>
+                <textarea
+                  name="bio"
+                  value={formData.bio}
+                  onChange={handleInputChange}
+                  rows={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 resize-none"
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
+            </section>
+
+            {/* Education & Expertise Section */}
+            <section>
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Education & Expertise</h3>
+
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Education
+                  </label>
+                  <input
+                    type="text"
+                    name="education"
+                    value={formData.education}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="e.g., Bachelor's in Mathematics"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Years of Experience
+                  </label>
+                  <input
+                    type="number"
+                    name="yearsOfExperience"
+                    value={formData.yearsOfExperience}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="e.g., 5"
+                  />
+                </div>
+              </div>
+
+              {/* Rating field - Only for tutors */}
+              {userType === 'TUTOR' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Rating (0-5)
+                  </label>
+                  <input
+                    type="number"
+                    name="rating"
+                    value={formData.rating}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="e.g., 4.5"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">Enter your rating from 0 to 5 (e.g., 4.5). This will be displayed to students.</p>
+                </div>
+              )}
+
+              {/* Hourly Rate field - Only for tutors */}
+              {userType === 'TUTOR' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Hourly Rate ($)
+                  </label>
+                  <input
+                    type="number"
+                    name="hourlyRate"
+                    value={formData.hourlyRate}
+                    onChange={handleInputChange}
+                    min="0"
+                    step="0.01"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="e.g., 50.00"
+                  />
+                  <p className="text-sm text-gray-500 mt-2">Set your hourly rate (price per hour). This will be displayed to students.</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Subjects
+                </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {subjects.map((subject) => (
+                    <span
+                      key={subject}
+                      className="inline-flex items-center gap-2 bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm"
+                    >
+                      {subject}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSubject(subject)}
+                        className="hover:text-blue-800"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSubject();
+                      }
+                    }}
+                    placeholder="Enter subject name"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddSubject}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add subject</span>
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 mt-8">
+            <button
+              onClick={handleCancel}
+              className="px-6 py-3 bg-red-100 text-red-600 font-semibold rounded-lg hover:bg-red-200 transition-colors"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </button>
           </div>
         </div>
-      </Layout>
+      </div>
+    </Layout>
   );
 }
 
 function NavItem({ icon, label, onClick }) {
   return (
-    <div 
-      onClick={onClick} 
+    <div
+      onClick={onClick}
       className="flex items-center gap-3 px-4 py-2 text-gray-800 hover:text-gray-600 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
     >
       {icon}
