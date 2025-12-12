@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import sessionService from "../services/sessionService";
 import Layout from "../components/Layout";
+import Swal from 'sweetalert2';
 
 export default function TutorSessionsPage() {
     const navigate = useNavigate();
@@ -107,19 +108,24 @@ export default function TutorSessionsPage() {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/tutor/stats', {
+            console.log('Fetching tutor stats from /api/tutors/stats...');
+            const response = await fetch('http://localhost:8080/api/tutors/stats', {
                 method: 'GET',
                 credentials: 'include',
             });
 
+            console.log('Stats API response status:', response.status);
+
             if (response.ok) {
                 const data = await response.json();
+                console.log('Fetched tutor stats:', data);
                 setStats(data);
             } else {
-                console.log('Tutor stats endpoint not available (403), using defaults');
+                const errorText = await response.text();
+                console.log('Tutor stats endpoint error:', response.status, errorText);
             }
         } catch (err) {
-            console.log('Error fetching tutor stats:', err);
+            console.error('Error fetching tutor stats:', err);
         }
     };
 
@@ -128,7 +134,18 @@ export default function TutorSessionsPage() {
     };
 
     const handleCancelSession = async (sessionId) => {
-        if (!window.confirm('Are you sure you want to cancel this session?')) {
+        const result = await Swal.fire({
+            title: 'Cancel Session?',
+            text: 'Are you sure you want to cancel this tutoring session? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, cancel it',
+            cancelButtonText: 'No, keep it'
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
 
@@ -137,11 +154,24 @@ export default function TutorSessionsPage() {
                 method: 'DELETE',
                 credentials: 'include',
             });
+            
+            await Swal.fire({
+                title: 'Cancelled!',
+                text: 'The session has been cancelled successfully.',
+                icon: 'success',
+                confirmButtonColor: '#3b82f6'
+            });
+            
             fetchSessions();
             fetchStats();
         } catch (err) {
             console.error("Error canceling session:", err);
-            alert('Failed to cancel session. Please try again.');
+            await Swal.fire({
+                title: 'Error!',
+                text: 'Failed to cancel session. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#3b82f6'
+            });
         }
     };
 
@@ -175,7 +205,7 @@ export default function TutorSessionsPage() {
     const upcomingSessions = sessions.filter(s =>
         s.status === 'scheduled' || s.status === 'upcoming' || s.status === 'active'
     );
-    const completedSessions = sessions.filter(s => s.status === 'completed');
+    const completedSessions = sessions.filter(s => s.status === 'completed' || s.status === 'room_completed');
 
     console.log('[TUTOR] Total sessions:', sessions.length);
     console.log('[TUTOR] Upcoming sessions:', upcomingSessions.length, upcomingSessions);
