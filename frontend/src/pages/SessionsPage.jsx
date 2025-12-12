@@ -101,11 +101,28 @@ export default function SessionsPage() {
     setActiveSession({ ...sessionData, status: "Live" });
   };
 
-  const handleEndSession = () => {
-    setActiveSession(null);
-    setIsVideoOn(true);
-    setIsMicOn(true);
-    setIsScreenSharing(false);
+  const handleEndSession = async () => {
+    try {
+      if (activeSession) {
+        // Update session status to room_completed to trigger rating flow
+        await sessionService.updateSession(activeSession.sessionId, {
+          ...activeSession,
+          status: "room_completed"
+        });
+        
+        // Refresh sessions to show it in the Completed tab
+        await fetchSessions();
+      }
+    } catch (err) {
+      console.error("Error ending session:", err);
+      // Even if update fails, we should probably still close the room locally 
+      // or show an error. For now, we log it.
+    } finally {
+      setActiveSession(null);
+      setIsVideoOn(true);
+      setIsMicOn(true);
+      setIsScreenSharing(false);
+    }
   };
 
   if (loading) {
@@ -230,7 +247,7 @@ export default function SessionsPage() {
                 onStartSession={handleStartSession}
               />
             )}
-            {activeTab === "completed" && <CompletedContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
+            {activeTab === "completed" && <CompletedContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} onRefresh={fetchSessions} />}
             {activeTab === "history" && <HistoryContent sessions={sessions} onEdit={handleOpenModal} onDelete={handleDeleteSession} />}
           </div>
         </div>
@@ -553,9 +570,6 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
             return { rating: ratingVal, feedback: feedbackVal };
         },
         didOpen: () => {
-            // Add simple click handlers for the stars to behave like a radio group visually if needed, 
-            // but the CSS peer-checked approach works for basic state. 
-            // We might need a bit of JS for hover effects if CSS isn't enough in the Swal context, but keep it simple.
             const stars = document.querySelectorAll('input[name="rating"]');
             stars.forEach(star => {
                 star.addEventListener('change', (e) => {
@@ -579,7 +593,6 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
 
     if (formValues) {
         try {
-            // Update session with rating, feedback, and ensure status is 'completed'
             await sessionService.updateSession(sessionId, {
                 ...session,
                 rating: formValues.rating,
@@ -598,70 +611,59 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
   };
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-            <User className="w-6 h-6 text-gray-500" />
+    <div className="p-6 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex gap-4">
+          <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+             <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                <User className="w-6 h-6" />
+             </div>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{tutorName || "Unknown Tutor"}</h3>
-            <p className="text-sm text-gray-600">{subject || "Unknown Subject"}</p>
-            <p className="text-sm font-medium text-gray-900 mt-1">{topic || "No topic specified"}</p>
+            <h3 className="font-bold text-gray-900 text-lg leading-tight">{tutorName || "Unknown Tutor"}</h3>
+            <div className="text-sm text-gray-500 font-medium">{subject || "Subject"}</div>
+            {topic && <div className="text-sm font-semibold text-gray-900 mt-1">{topic}</div>}
+            
+             {/* Delete/Edit Actions - subtle */}
+             <div className="flex gap-2 mt-2">
+                 {/* Only show delete/edit if needed, maybe hide them to match design cleaniness or make very subtle */}
+                  <button onClick={() => onDelete(sessionId)} className="text-gray-300 hover:text-red-500 transition-colors" title="Delete record">
+                      <MoreHorizontal className="w-4 h-4" />
+                  </button>
+             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-right">
-            <p className="text-sm text-gray-500">{dateTime ? new Date(dateTime).toLocaleDateString() : "N/A"}</p>
-            <p className="text-sm text-gray-500">{duration || 0} min</p>
-          </div>
-          
-          {needsRating ? (
-              <button 
-                onClick={handleRate}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded-lg font-medium transition-colors ml-2 animate-pulse"
-              >
-                Rate Tutor
-              </button>
-          ) : (
-             <>
-                 <button
-                    onClick={() => onEdit(session)}
-                    className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
-                >
-                    <Edit className="w-5 h-5" />
-                </button>
-             </>
-          )}
-
-          <button
-            onClick={() => onDelete(sessionId)}
-            className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
+        
+        <div className="text-right">
+           <div className="text-sm text-gray-500 font-medium">{dateTime ? new Date(dateTime).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }) : "Date"}</div>
+           <div className="text-sm text-gray-400">{duration || 0} min</div>
         </div>
       </div>
 
-      {!needsRating && (
-          <>
-            <div className="flex items-center gap-1 mb-2">
+      {needsRating ? (
+        <div className="mt-4 border-t border-gray-50 pt-4">
+            <p className="text-sm text-gray-500 mb-3">Session completed. Please rate your experience.</p>
+            <button 
+                onClick={handleRate}
+                className="inline-flex items-center px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-bold rounded-lg transition-colors shadow-sm"
+              >
+                <Star className="w-4 h-4 mr-2 fill-current" />
+                Rate Session
+              </button>
+        </div>
+      ) : (
+        <div className="mt-2">
+           <div className="flex items-center gap-1 mb-2">
                 {[...Array(5)].map((_, i) => (
                 <Star
                     key={i}
-                    className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                    className={`w-5 h-5 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200"}`}
                 />
                 ))}
-                <span className="text-sm text-gray-500 ml-1">({rating || 0}/5)</span>
+                <span className="text-sm font-medium text-gray-500 ml-2">({rating}/5)</span>
             </div>
-            <p className="text-sm text-gray-600 italic">"{feedback || "No feedback provided"}"</p>
-          </>
-      )}
-      
-      {needsRating && (
-         <p className="text-sm text-blue-600 mt-2 bg-blue-50 p-2 rounded">
-             Please rate this session to complete it.
-         </p>
+            {feedback && <p className="text-gray-600 italic text-sm">"{feedback}"</p>}
+        </div>
       )}
     </div>
   );
