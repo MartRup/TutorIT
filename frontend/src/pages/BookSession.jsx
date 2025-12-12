@@ -72,7 +72,29 @@ export default function BookSession() {
   };
 
   const handlePaymentChange = (field, value) => {
-    setPaymentData(prev => ({ ...prev, [field]: value }));
+    let formattedValue = value;
+
+    if (field === 'cardNumber') {
+      const digits = value.replace(/\D/g, '');
+      formattedValue = digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+    } else if (field === 'expiryDate') {
+      // Check for backspace on the slash
+      const oldVal = paymentData.expiryDate;
+      if (oldVal && oldVal.length === 3 && oldVal.endsWith('/') && value.length === 2) {
+        formattedValue = value;
+      } else {
+        const digits = value.replace(/\D/g, '');
+        if (digits.length >= 2) {
+          formattedValue = `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
+        } else {
+          formattedValue = digits;
+        }
+      }
+    } else if (field === 'cvv') {
+      formattedValue = value.replace(/\D/g, '').slice(0, 3);
+    }
+
+    setPaymentData(prev => ({ ...prev, [field]: formattedValue }));
   };
 
   // Validation
@@ -206,7 +228,12 @@ export default function BookSession() {
       console.log('Session ID:', createdSession.sessionId || createdSession.id);
 
       // Show success alert
-      alert(`✅ SUCCESS!\nSession created: ${JSON.stringify(createdSession, null, 2)}`);
+      await Swal.fire({
+        title: 'Booking Successful!',
+        text: 'Your tutoring session has been scheduled successfully.',
+        icon: 'success',
+        confirmButtonText: 'Great!'
+      });
 
       // Move to confirmation step
       setCurrentStep(4);
@@ -215,7 +242,6 @@ export default function BookSession() {
       console.error('Error booking session:', error);
 
       // Show detailed error alert
-      alert(`❌ BOOKING FAILED!\nError: ${error.message}\n\nCheck console for details`);
 
       Swal.fire({
         title: 'Booking Failed',
