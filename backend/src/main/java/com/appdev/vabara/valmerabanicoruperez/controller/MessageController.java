@@ -245,6 +245,7 @@ public class MessageController {
         Map<String, Object> map = new HashMap<>();
         map.put("id", conv.getId());
         map.put("tutorId", conv.getTutorId());
+        map.put("studentEmail", conv.getStudentEmail());
         map.put("name", conv.getTutorName());
         map.put("role", conv.getTutorSubject() != null ? conv.getTutorSubject() : "Tutor");
         map.put("status", "Online now");
