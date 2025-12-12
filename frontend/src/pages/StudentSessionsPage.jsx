@@ -18,6 +18,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import sessionService from "../services/sessionService";
 import Layout from "../components/Layout";
+import Swal from 'sweetalert2';
 
 export default function StudentSessionsPage() {
     const navigate = useNavigate();
@@ -140,12 +141,91 @@ export default function StudentSessionsPage() {
         navigate(`/session/${sessionId}`);
     };
 
-    const handleRateSession = async (sessionId, rating, feedback) => {
-        try {
-            await sessionService.updateSession(sessionId, { rating, feedback, status: 'completed' });
-            fetchSessions();
-        } catch (err) {
-            console.error("Error rating session:", err);
+    const handleRateSession = async (session) => {
+        const { rating, feedback } = session;
+        
+        const { value: formValues } = await Swal.fire({
+            title: rating ? 'Edit Your Rating' : 'Rate your Tutor',
+            html:
+                '<div class="flex flex-col items-center gap-4">' +
+                '<p class="text-sm text-gray-500">How was your session with ' + (session.tutorName || 'the tutor') + '?</p>' +
+                '<div class="rating space-x-2">' +
+                '  <input type="radio" name="rating" value="1" class="hidden peer/1" id="star1"><label for="star1" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/1:text-yellow-400">★</label>' +
+                '  <input type="radio" name="rating" value="2" class="hidden peer/2" id="star2"><label for="star2" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/2:text-yellow-400">★</label>' +
+                '  <input type="radio" name="rating" value="3" class="hidden peer/3" id="star3"><label for="star3" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/3:text-yellow-400">★</label>' +
+                '  <input type="radio" name="rating" value="4" class="hidden peer/4" id="star4"><label for="star4" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/4:text-yellow-400">★</label>' +
+                '  <input type="radio" name="rating" value="5" class="hidden peer/5" id="star5"><label for="star5" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/5:text-yellow-400">★</label>' +
+                '</div>' +
+                '<textarea id="swal-feedback" class="swal2-textarea" placeholder="Write your feedback here..." style="margin: 10px auto; width: 100%;">' + (feedback || '') + '</textarea>' +
+                '</div>',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: rating ? 'Update Review' : 'Submit Review',
+            preConfirm: () => {
+                const feedbackVal = document.getElementById('swal-feedback').value;
+                const ratingInput = document.querySelector('input[name="rating"]:checked');
+                const ratingVal = ratingInput ? parseInt(ratingInput.value) : 0;
+                
+                if (!ratingVal) {
+                    Swal.showValidationMessage('Please select a star rating');
+                    return false;
+                }
+                return { rating: ratingVal, feedback: feedbackVal };
+            },
+            didOpen: () => {
+                const stars = document.querySelectorAll('input[name="rating"]');
+                
+                // Pre-select existing rating if editing
+                if (rating && rating > 0) {
+                    const existingRating = document.querySelector(`input[name="rating"][value="${rating}"]`);
+                    if (existingRating) {
+                        existingRating.checked = true;
+                        // Highlight stars up to existing rating
+                        for(let i=1; i<=rating; i++) {
+                            const s = document.querySelector(`input[name="rating"][value="${i}"]`);
+                            if(s) {
+                                s.nextElementSibling.classList.remove('text-gray-300');
+                                s.nextElementSibling.classList.add('text-yellow-400');
+                            }
+                        }
+                    }
+                }
+                
+                stars.forEach(star => {
+                    star.addEventListener('change', (e) => {
+                        // Reset all
+                        stars.forEach(s => s.nextElementSibling.classList.remove('text-yellow-400'));
+                        stars.forEach(s => s.nextElementSibling.classList.add('text-gray-300'));
+                        
+                        // Highlight up to selected
+                        const val = parseInt(e.target.value);
+                        for(let i=1; i<=val; i++) {
+                            const s = document.querySelector(`input[name="rating"][value="${i}"]`);
+                            if(s) {
+                                s.nextElementSibling.classList.remove('text-gray-300');
+                                s.nextElementSibling.classList.add('text-yellow-400');
+                            }
+                        }
+                    });
+                });
+            }
+        });
+
+        if (formValues) {
+            try {
+                await sessionService.updateSession(session.sessionId, {
+                    ...session,
+                    rating: formValues.rating,
+                    feedback: formValues.feedback,
+                    status: 'completed'
+                });
+
+                await Swal.fire('Thank you!', rating ? 'Your review has been updated.' : 'Your review has been submitted.', 'success');
+                fetchSessions();
+            } catch (error) {
+                console.error(error);
+                await Swal.fire('Error', 'Failed to submit review.', 'error');
+            }
         }
     };
 
@@ -182,7 +262,9 @@ export default function StudentSessionsPage() {
     const upcomingSessions = sessions.filter(s =>
         s.status === 'scheduled' || s.status === 'upcoming' || s.status === 'active'
     );
-    const completedSessions = sessions.filter(s => s.status === 'completed');
+    const completedSessions = sessions.filter(s => 
+        s.status === 'completed' || s.status === 'room_completed'
+    );
 
     console.log('Total sessions:', sessions.length);
     console.log('Upcoming sessions:', upcomingSessions.length, upcomingSessions);
@@ -419,12 +501,13 @@ function CompletedSessionsTab({ sessions, onRate }) {
 
 function CompletedSessionCard({ session, onRate }) {
     const sessionDate = new Date(session.dateTime);
+    const needsRating = !session.rating || session.status === 'room_completed';
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <User className="h-6 w-6 text-gray-500" />
                     </div>
                     <div className="text-left">
@@ -450,25 +533,45 @@ function CompletedSessionCard({ session, onRate }) {
             </div>
 
             {/* Rating */}
-            <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <Star
-                            key={star}
-                            className={`h-5 w-5 ${star <= (session.rating || 0)
-                                ? 'text-yellow-400 fill-yellow-400'
-                                : 'text-gray-300'
-                                }`}
-                        />
-                    ))}
-                    {session.rating && (
-                        <span className="text-sm text-gray-600 ml-2">({session.rating}/5)</span>
+            {needsRating ? (
+                <div className="border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-500 mb-3">Session completed. Please rate your experience.</p>
+                    <button 
+                        onClick={() => onRate(session)}
+                        className="inline-flex items-center px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-bold rounded-lg transition-colors shadow-sm"
+                    >
+                        <Star className="w-4 h-4 mr-2 fill-current" />
+                        Rate Session
+                    </button>
+                </div>
+            ) : (
+                <div className="border-t border-gray-200 pt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`h-5 w-5 ${star <= (session.rating || 0)
+                                    ? 'text-yellow-400 fill-yellow-400'
+                                    : 'text-gray-300'
+                                    }`}
+                            />
+                        ))}
+                        {session.rating && (
+                            <span className="text-sm text-gray-600 ml-2">({session.rating}/5)</span>
+                        )}
+                        <button
+                            onClick={() => onRate(session)}
+                            className="ml-3 text-xs text-blue-600 hover:text-blue-800 underline"
+                            title="Edit your rating"
+                        >
+                            Edit Rating
+                        </button>
+                    </div>
+                    {session.feedback && (
+                        <p className="text-sm text-gray-600 italic">"{session.feedback}"</p>
                     )}
                 </div>
-                {session.feedback && (
-                    <p className="text-sm text-gray-600 italic">"{session.feedback}"</p>
-                )}
-            </div>
+            )}
         </div>
     );
 }

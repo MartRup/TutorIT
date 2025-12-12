@@ -40,7 +40,6 @@ export default function TutorSessionsPage() {
     useEffect(() => {
         checkUserRole();
         fetchSessions();
-        fetchStats();
     }, []);
 
     const checkUserRole = async () => {
@@ -94,7 +93,12 @@ export default function TutorSessionsPage() {
 
             const data = await response.json();
             console.log('Fetched tutor sessions:', data);
-            setSessions(Array.isArray(data) ? data : []);
+            const sessionsData = Array.isArray(data) ? data : [];
+            setSessions(sessionsData);
+            
+            // Calculate stats from sessions data
+            calculateStats(sessionsData);
+            
             setError(null);
         } catch (err) {
             console.error("Error fetching tutor sessions:", err);
@@ -106,27 +110,44 @@ export default function TutorSessionsPage() {
         }
     };
 
+    const calculateStats = (sessionsData) => {
+        // Calculate stats from sessions data
+        const completedSessions = sessionsData.filter(s => 
+            s.status === 'completed' || s.status === 'room_completed'
+        );
+        
+        // Get unique students
+        const uniqueStudents = new Set(sessionsData.map(s => s.studentName || s.studentId));
+        
+        // Calculate total earnings from completed sessions
+        const totalEarnings = completedSessions.reduce((sum, session) => {
+            return sum + (parseFloat(session.price) || 0);
+        }, 0);
+        
+        // Calculate average rating from completed sessions with ratings
+        const sessionsWithRatings = completedSessions.filter(s => s.rating && s.rating > 0);
+        const averageRating = sessionsWithRatings.length > 0
+            ? sessionsWithRatings.reduce((sum, s) => sum + s.rating, 0) / sessionsWithRatings.length
+            : 0;
+        
+        setStats({
+            totalSessions: completedSessions.length,
+            totalStudents: uniqueStudents.size,
+            totalEarnings: totalEarnings,
+            averageRating: averageRating
+        });
+        
+        console.log('Calculated stats:', {
+            totalSessions: completedSessions.length,
+            totalStudents: uniqueStudents.size,
+            totalEarnings: totalEarnings,
+            averageRating: averageRating
+        });
+    };
+
     const fetchStats = async () => {
-        try {
-            console.log('Fetching tutor stats from /api/tutors/stats...');
-            const response = await fetch('http://localhost:8080/api/tutors/stats', {
-                method: 'GET',
-                credentials: 'include',
-            });
-
-            console.log('Stats API response status:', response.status);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Fetched tutor stats:', data);
-                setStats(data);
-            } else {
-                const errorText = await response.text();
-                console.log('Tutor stats endpoint error:', response.status, errorText);
-            }
-        } catch (err) {
-            console.error('Error fetching tutor stats:', err);
-        }
+        // This function is now deprecated - stats are calculated from sessions data
+        // Keeping it for backward compatibility but it does nothing
     };
 
     const handleStartSession = (sessionId) => {
@@ -163,7 +184,6 @@ export default function TutorSessionsPage() {
             });
             
             fetchSessions();
-            fetchStats();
         } catch (err) {
             console.error("Error canceling session:", err);
             await Swal.fire({
@@ -186,7 +206,6 @@ export default function TutorSessionsPage() {
                 body: JSON.stringify({ status: 'completed' }),
             });
             fetchSessions();
-            fetchStats();
         } catch (err) {
             console.error("Error completing session:", err);
         }
@@ -443,13 +462,13 @@ function TutorCompletedSessionCard({ session }) {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         <User className="h-6 w-6 text-gray-500" />
                     </div>
-                    <div>
-                        <h3 className="font-semibold text-lg text-gray-900">{session.studentName || 'Unknown Student'}</h3>
-                        <p className="text-gray-600 font-medium">{session.subject || 'Unknown Subject'}</p>
-                        <p className="text-gray-500 text-sm mt-1">{session.topic || 'No topic specified'}</p>
+                    <div className="text-left">
+                        <h3 className="font-semibold text-lg text-gray-900 text-left">{session.studentName || 'Unknown Student'}</h3>
+                        <p className="text-gray-600 font-medium text-left">{session.subject || 'Unknown Subject'}</p>
+                        <p className="text-gray-500 text-sm mt-1 text-left">{session.topic || 'No topic specified'}</p>
                     </div>
                 </div>
                 <div className="text-right">
