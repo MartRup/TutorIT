@@ -9,6 +9,7 @@ import SessionsPage from './pages/SessionsPage';
 import StudentSessionsPage from './pages/StudentSessionsPage';
 import TutorSessionsPage from './pages/TutorSessionsPage';
 import BookSession from './pages/BookSession';
+import SessionRoom from './pages/SessionRoom';
 import SettingsPage from './pages/SettingsPage';
 import './App.css';
 import Dashboard from './pages/Dashboard';
@@ -57,6 +58,12 @@ function App() {
             </ProtectedRoute>
           } />
 
+
+          <Route path="/session/:sessionId" element={
+            <ProtectedRoute>
+              <SessionRoom />
+            </ProtectedRoute>
+          } />
           <Route path="/book-session" element={<BookSession />} />
           <Route path="/settings" element={
             <ProtectedRoute>
