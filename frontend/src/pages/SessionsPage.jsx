@@ -541,7 +541,7 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
 
   const handleRate = async () => {
      const { value: formValues } = await Swal.fire({
-        title: 'Rate your Tutor',
+        title: rating ? 'Edit Your Rating' : 'Rate your Tutor',
         html:
             '<div class="flex flex-col items-center gap-4">' +
             '<p class="text-sm text-gray-500">How was your session with ' + (tutorName || 'the tutor') + '?</p>' +
@@ -552,11 +552,11 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
             '  <input type="radio" name="rating" value="4" class="hidden peer/4" id="star4"><label for="star4" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/4:text-yellow-400">★</label>' +
             '  <input type="radio" name="rating" value="5" class="hidden peer/5" id="star5"><label for="star5" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/5:text-yellow-400">★</label>' +
             '</div>' +
-            '<textarea id="swal-feedback" class="swal2-textarea" placeholder="Write your feedback here..." style="margin: 10px auto; width: 100%;"></textarea>' +
+            '<textarea id="swal-feedback" class="swal2-textarea" placeholder="Write your feedback here..." style="margin: 10px auto; width: 100%;">' + (feedback || '') + '</textarea>' +
             '</div>',
         focusConfirm: false,
         showCancelButton: true,
-        confirmButtonText: 'Submit Review',
+        confirmButtonText: rating ? 'Update Review' : 'Submit Review',
         preConfirm: () => {
             const feedbackVal = document.getElementById('swal-feedback').value;
             // Get selected radio value
@@ -571,6 +571,23 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
         },
         didOpen: () => {
             const stars = document.querySelectorAll('input[name="rating"]');
+            
+            // Pre-select existing rating if editing
+            if (rating && rating > 0) {
+                const existingRating = document.querySelector(`input[name="rating"][value="${rating}"]`);
+                if (existingRating) {
+                    existingRating.checked = true;
+                    // Highlight stars up to existing rating
+                    for(let i=1; i<=rating; i++) {
+                        const s = document.querySelector(`input[name="rating"][value="${i}"]`);
+                        if(s) {
+                            s.nextElementSibling.classList.remove('text-gray-300');
+                            s.nextElementSibling.classList.add('text-yellow-400');
+                        }
+                    }
+                }
+            }
+            
             stars.forEach(star => {
                 star.addEventListener('change', (e) => {
                     // Reset all
@@ -600,7 +617,7 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
                 status: 'completed'
             });
 
-            Swal.fire('Thank you!', 'Your review has been submitted.', 'success');
+            Swal.fire('Thank you!', rating ? 'Your review has been updated.' : 'Your review has been submitted.', 'success');
             if (onRefresh) onRefresh();
 
         } catch (error) {
@@ -661,6 +678,13 @@ function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
                 />
                 ))}
                 <span className="text-sm font-medium text-gray-500 ml-2">({rating}/5)</span>
+                <button
+                    onClick={handleRate}
+                    className="ml-3 text-xs text-blue-600 hover:text-blue-800 underline"
+                    title="Edit your rating"
+                >
+                    Edit Rating
+                </button>
             </div>
             {feedback && <p className="text-gray-600 italic text-sm">"{feedback}"</p>}
         </div>

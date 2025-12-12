@@ -35,9 +35,15 @@ public class TutoringSessionEntity {
     @Column(name = "payment_id")
     private String paymentId;
 
+    @Column(name = "price")
+    private Double price;
+
     // Additional fields for frontend display
     @Column(name = "tutor_name")
     private String tutorName;
+
+    @Column(name = "student_name")
+    private String studentName;
 
     @Column(name = "subject")
     private String subject;
@@ -130,6 +136,14 @@ public class TutoringSessionEntity {
         this.paymentId = paymentId;
     }
 
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+
     // Getters and setters for additional fields
     public String getTutorName() {
         return tutorName;
@@ -137,6 +151,14 @@ public class TutoringSessionEntity {
 
     public void setTutorName(String tutorName) {
         this.tutorName = tutorName;
+    }
+
+    public String getStudentName() {
+        return studentName;
+    }
+
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
     }
 
     public String getSubject() {
