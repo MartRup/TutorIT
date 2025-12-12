@@ -233,11 +233,6 @@ export default function TutorSessionsPage() {
                         label="Completed Sessions"
                         count={completedSessions.length}
                     />
-                    <TabButton
-                        active={activeTab === "analytics"}
-                        onClick={() => setActiveTab("analytics")}
-                        label="Analytics"
-                    />
                 </div>
 
                 {/* Tab Content */}
@@ -253,9 +248,6 @@ export default function TutorSessionsPage() {
                         <CompletedSessionsTab
                             sessions={completedSessions}
                         />
-                    )}
-                    {activeTab === "analytics" && (
-                        <AnalyticsTab sessions={sessions} stats={stats} />
                     )}
                 </div>
             </div>

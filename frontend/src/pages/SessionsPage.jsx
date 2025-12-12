@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import sessionService from "../services/sessionService";
 import SessionModal from "./components/SessionModal";
 import Layout from "../components/Layout";
+import Swal from 'sweetalert2';
 
 export default function SessionsPage() {
   const navigate = useNavigate();
@@ -484,9 +485,9 @@ function UpcomingSessionCard({ session, onEdit, onDelete, tutorName, subject, to
   );
 }
 
-function CompletedContent({ sessions, onEdit, onDelete }) {
+function CompletedContent({ sessions, onEdit, onDelete, onRefresh }) {
   const completedSessions = sessions.filter(session =>
-    session.status === "completed"
+    session.status === "completed" || session.status === "room_completed"
   );
 
   return (
@@ -504,6 +505,7 @@ function CompletedContent({ sessions, onEdit, onDelete }) {
               session={session}
               onEdit={onEdit}
               onDelete={onDelete}
+              onRefresh={onRefresh}
             />
           ))
         ) : (
@@ -516,8 +518,84 @@ function CompletedContent({ sessions, onEdit, onDelete }) {
   );
 }
 
-function CompletedSessionCard({ session, onEdit, onDelete }) {
-  const { sessionId, tutorName, subject, topic, rating, feedback, dateTime, duration } = session;
+function CompletedSessionCard({ session, onEdit, onDelete, onRefresh }) {
+  const { sessionId, tutorName, subject, topic, rating, feedback, dateTime, duration, status } = session;
+  const needsRating = !rating || status === 'room_completed';
+
+  const handleRate = async () => {
+     const { value: formValues } = await Swal.fire({
+        title: 'Rate your Tutor',
+        html:
+            '<div class="flex flex-col items-center gap-4">' +
+            '<p class="text-sm text-gray-500">How was your session with ' + (tutorName || 'the tutor') + '?</p>' +
+            '<div class="rating space-x-2">' +
+            '  <input type="radio" name="rating" value="1" class="hidden peer/1" id="star1"><label for="star1" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/1:text-yellow-400">★</label>' +
+            '  <input type="radio" name="rating" value="2" class="hidden peer/2" id="star2"><label for="star2" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/2:text-yellow-400">★</label>' +
+            '  <input type="radio" name="rating" value="3" class="hidden peer/3" id="star3"><label for="star3" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/3:text-yellow-400">★</label>' +
+            '  <input type="radio" name="rating" value="4" class="hidden peer/4" id="star4"><label for="star4" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/4:text-yellow-400">★</label>' +
+            '  <input type="radio" name="rating" value="5" class="hidden peer/5" id="star5"><label for="star5" class="cursor-pointer text-3xl text-gray-300 hover:text-yellow-400 peer-checked/5:text-yellow-400">★</label>' +
+            '</div>' +
+            '<textarea id="swal-feedback" class="swal2-textarea" placeholder="Write your feedback here..." style="margin: 10px auto; width: 100%;"></textarea>' +
+            '</div>',
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Submit Review',
+        preConfirm: () => {
+            const feedbackVal = document.getElementById('swal-feedback').value;
+            // Get selected radio value
+            const ratingInput = document.querySelector('input[name="rating"]:checked');
+            const ratingVal = ratingInput ? parseInt(ratingInput.value) : 0;
+            
+            if (!ratingVal) {
+                Swal.showValidationMessage('Please select a star rating');
+                return false;
+            }
+            return { rating: ratingVal, feedback: feedbackVal };
+        },
+        didOpen: () => {
+            // Add simple click handlers for the stars to behave like a radio group visually if needed, 
+            // but the CSS peer-checked approach works for basic state. 
+            // We might need a bit of JS for hover effects if CSS isn't enough in the Swal context, but keep it simple.
+            const stars = document.querySelectorAll('input[name="rating"]');
+            stars.forEach(star => {
+                star.addEventListener('change', (e) => {
+                    // Reset all
+                    stars.forEach(s => s.nextElementSibling.classList.remove('text-yellow-400'));
+                    stars.forEach(s => s.nextElementSibling.classList.add('text-gray-300'));
+                    
+                    // Highlight up to selected
+                    const val = parseInt(e.target.value);
+                    for(let i=1; i<=val; i++) {
+                         const s = document.querySelector(`input[name="rating"][value="${i}"]`);
+                         if(s) {
+                             s.nextElementSibling.classList.remove('text-gray-300');
+                             s.nextElementSibling.classList.add('text-yellow-400');
+                         }
+                    }
+                });
+            });
+        }
+    });
+
+    if (formValues) {
+        try {
+            // Update session with rating, feedback, and ensure status is 'completed'
+            await sessionService.updateSession(sessionId, {
+                ...session,
+                rating: formValues.rating,
+                feedback: formValues.feedback,
+                status: 'completed'
+            });
+
+            Swal.fire('Thank you!', 'Your review has been submitted.', 'success');
+            if (onRefresh) onRefresh();
+
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'Failed to submit review.', 'error');
+        }
+    }
+  };
 
   return (
     <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -534,15 +612,28 @@ function CompletedSessionCard({ session, onEdit, onDelete }) {
         </div>
         <div className="flex items-center gap-2">
           <div className="text-right">
-            <p className="text-sm text-gray-500">{dateTime ? new Date(dateTime).toLocaleDateString() : "N/A"}</p>.
+            <p className="text-sm text-gray-500">{dateTime ? new Date(dateTime).toLocaleDateString() : "N/A"}</p>
             <p className="text-sm text-gray-500">{duration || 0} min</p>
           </div>
-          <button
-            onClick={() => onEdit(session)}
-            className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
-          >
-            <Edit className="w-5 h-5" />
-          </button>
+          
+          {needsRating ? (
+              <button 
+                onClick={handleRate}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded-lg font-medium transition-colors ml-2 animate-pulse"
+              >
+                Rate Tutor
+              </button>
+          ) : (
+             <>
+                 <button
+                    onClick={() => onEdit(session)}
+                    className="p-2 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-gray-100"
+                >
+                    <Edit className="w-5 h-5" />
+                </button>
+             </>
+          )}
+
           <button
             onClick={() => onDelete(sessionId)}
             className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
@@ -552,17 +643,26 @@ function CompletedSessionCard({ session, onEdit, onDelete }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 mb-2">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-          />
-        ))}
-        <span className="text-sm text-gray-500 ml-1">({rating || 0}/5)</span>
-      </div>
-
-      <p className="text-sm text-gray-600 italic">"{feedback || "No feedback provided"}"</p>
+      {!needsRating && (
+          <>
+            <div className="flex items-center gap-1 mb-2">
+                {[...Array(5)].map((_, i) => (
+                <Star
+                    key={i}
+                    className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+                />
+                ))}
+                <span className="text-sm text-gray-500 ml-1">({rating || 0}/5)</span>
+            </div>
+            <p className="text-sm text-gray-600 italic">"{feedback || "No feedback provided"}"</p>
+          </>
+      )}
+      
+      {needsRating && (
+         <p className="text-sm text-blue-600 mt-2 bg-blue-50 p-2 rounded">
+             Please rate this session to complete it.
+         </p>
+      )}
     </div>
   );
 }
