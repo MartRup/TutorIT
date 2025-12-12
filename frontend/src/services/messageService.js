@@ -94,9 +94,56 @@ export const sendMessage = async (conversationId, messageText) => {
   }
 };
 
+// Delete a message
+export const deleteMessage = async (messageId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${messageId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Failed to delete message'
+    };
+  }
+};
+
+// React to a message
+export const reactToMessage = async (messageId, reaction) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${messageId}/react`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reaction: reaction
+      }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message || 'Failed to react to message'
+    };
+  }
+};
+
 export default {
   getConversations,
   getMessages,
   sendMessage,
-  createConversation
+  createConversation,
+  deleteMessage,
+  reactToMessage
 };

@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   Phone,
   Video,
   MoreVertical,
-  Paperclip,
   Smile,
   Send,
-  MessageCircle
+  MessageCircle,
+  Trash2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getConversations, getMessages, sendMessage } from "../services/messageService";
+import { getConversations, getMessages, sendMessage, deleteMessage, reactToMessage } from "../services/messageService";
 import tutorService from "../services/tutorService";
 import Layout from "../components/Layout";
 
@@ -25,6 +25,9 @@ export default function MessagesPage() {
   const [messageInput, setMessageInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   // Load conversations and tutors on component mount
   useEffect(() => {
@@ -85,6 +88,28 @@ export default function MessagesPage() {
     loadMessages();
   }, [selectedConversation]);
 
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentMessages]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (messageInput.trim() === "" || !selectedConversation) return;
@@ -102,6 +127,66 @@ export default function MessagesPage() {
       setSending(false);
     }
   };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!window.confirm('Are you sure you want to delete this message?')) {
+      return;
+    }
+
+    try {
+      const result = await deleteMessage(messageId);
+      console.log('Delete result:', result);
+      if (result.success) {
+        // Update the message in the current messages list
+        setCurrentMessages(currentMessages.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, isDeleted: true, text: 'This message was deleted' }
+            : msg
+        ));
+      } else {
+        alert(`Failed to delete message: ${result.message || result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      alert(`Failed to delete message: ${error.message}`);
+    }
+  };
+
+  const handleReactToMessage = async (messageId, reaction) => {
+    try {
+      const result = await reactToMessage(messageId, reaction);
+      if (result.success) {
+        // Update the message with the new reaction
+        setCurrentMessages(currentMessages.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, reaction: result.data.reaction }
+            : msg
+        ));
+      }
+    } catch (error) {
+      console.error('Error reacting to message:', error);
+    }
+  };
+
+  const handleEmojiClick = (emoji) => {
+    setMessageInput(messageInput + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const commonEmojis = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
+    '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩',
+    '😘', '😗', '😚', '😙', '😋', '😛', '😜', '🤪',
+    '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨',
+    '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
+    '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕',
+    '🤢', '🤮', '🤧', '🥵', '🥶', '😎', '🤓', '🧐',
+    '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
+    '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪',
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
+    '💯', '💢', '💥', '💫', '💦', '💨', '🕳️', '💬',
+    '👀', '🔥', '⭐', '✨', '🎉', '🎊', '🎈', '🎁'
+  ];
 
   const selectedConvData = conversations.find(conv => conv.id === selectedConversation);
 
@@ -155,10 +240,10 @@ export default function MessagesPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-1">
-                          <h3 className="font-semibold text-gray-900 truncate">{conv.name}</h3>
+                          <h3 className="font-semibold text-gray-900 truncate text-left">{conv.name}</h3>
                           <span className="text-xs text-gray-500">{conv.time}</span>
                         </div>
-                        <p className="text-sm text-gray-600 truncate mb-1">{conv.lastMessage}</p>
+                        <p className="text-sm text-gray-600 truncate mb-1 text-left">{conv.lastMessage}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">{conv.role}</span>
                           {conv.unread > 0 && (
@@ -206,7 +291,7 @@ export default function MessagesPage() {
 
         {/* Chat Area */}
         {selectedConversation ? (
-          <div className="flex-1 flex flex-col bg-white">
+          <div className="flex-1 flex flex-col bg-white h-screen max-h-screen overflow-hidden">
             {/* Chat Header */}
             <header className="h-20 border-b border-gray-200 flex items-center justify-between px-8">
               <div className="flex items-center gap-4">
@@ -261,15 +346,58 @@ export default function MessagesPage() {
                         <span className="text-xs font-semibold text-gray-600">{msg.sender.charAt(0)}</span>
                       </div>
                     )}
-                    <div>
+                    <div className="relative group">
                       <div
                         className={`p-4 rounded-2xl ${msg.isMe
                             ? 'bg-blue-600 text-white rounded-br-none'
                             : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                          }`}
+                          } ${msg.isDeleted ? 'italic opacity-60' : ''}`}
                       >
                         <p className="text-sm leading-relaxed">{msg.text}</p>
+                        
+                        {/* Delete button - only show for own messages that aren't deleted */}
+                        {msg.isMe && !msg.isDeleted && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 rounded"
+                            title="Delete message"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
+                      
+                      {/* Reactions */}
+                      {!msg.isDeleted && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {/* Quick reaction buttons */}
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {['❤️', '👍', '😂', '😮'].map((emoji) => (
+                              <button
+                                key={emoji}
+                                onClick={() => handleReactToMessage(msg.id, emoji)}
+                                className={`text-sm hover:scale-125 transition-transform ${
+                                  msg.reaction === emoji ? 'scale-125' : ''
+                                }`}
+                                title="React"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Display current reaction */}
+                          {msg.reaction && (
+                            <div 
+                              onClick={() => handleReactToMessage(msg.id, msg.reaction)}
+                              className="bg-white border border-gray-200 rounded-full px-2 py-0.5 text-sm cursor-pointer hover:bg-gray-50"
+                            >
+                              {msg.reaction}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <p className={`text-xs text-gray-400 mt-1 ${msg.isMe ? 'text-right' : 'text-left'}`}>
                         {msg.time}
                       </p>
@@ -277,14 +405,13 @@ export default function MessagesPage() {
                   </div>
                 </div>
               ))}
+              {/* Scroll anchor */}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
             <div className="p-6 border-t border-gray-200">
               <form onSubmit={handleSendMessage} className="flex items-center gap-4 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                <button type="button" className="p-2 text-gray-400 hover:text-gray-600">
-                  <Paperclip className="w-5 h-5" />
-                </button>
                 <input
                   type="text"
                   value={messageInput}
@@ -293,9 +420,41 @@ export default function MessagesPage() {
                   className="flex-1 bg-transparent border-none focus:ring-0 text-gray-800 placeholder-gray-500"
                   disabled={sending}
                 />
-                <button type="button" className="p-2 text-gray-400 hover:text-gray-600">
-                  <Smile className="w-5 h-5" />
-                </button>
+                
+                {/* Emoji picker button */}
+                <div className="relative">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Add emoji"
+                  >
+                    <Smile className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Emoji Picker Popup */}
+                  {showEmojiPicker && (
+                    <div 
+                      ref={emojiPickerRef}
+                      className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-xl border border-gray-200 p-4 w-80 max-h-64 overflow-y-auto z-50"
+                    >
+                      <div className="mb-2 text-sm font-semibold text-gray-700">Pick an emoji</div>
+                      <div className="grid grid-cols-8 gap-2">
+                        {commonEmojis.map((emoji, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleEmojiClick(emoji)}
+                            className="text-2xl hover:bg-gray-100 rounded p-1 transition-colors"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
                 <button
                   type="submit"
                   className={`p-2 text-white rounded-lg transition-colors ${sending ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
