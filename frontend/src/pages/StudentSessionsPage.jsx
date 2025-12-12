@@ -345,7 +345,7 @@ function UpcomingSessionCard({ session, onJoin, onCancel }) {
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
                         {session.tutorName?.charAt(0) || 'T'}
                     </div>
-                    <div>
+                    <div className="text-left">
                         <h3 className="font-semibold text-lg text-gray-900">{session.tutorName || 'Unknown Tutor'}</h3>
                         <p className="text-blue-600 font-medium">{session.subject || 'Unknown Subject'}</p>
                         <p className="text-gray-600 text-sm mt-1">{session.topic || 'No topic specified'}</p>
@@ -372,11 +372,11 @@ function UpcomingSessionCard({ session, onJoin, onCancel }) {
                 </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 justify-end">
                 {canJoin && (
                     <button
                         onClick={() => onJoin(session.sessionId)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                         <Video className="h-4 w-4" />
                         Join Session
@@ -427,9 +427,9 @@ function CompletedSessionCard({ session, onRate }) {
                     <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
                         <User className="h-6 w-6 text-gray-500" />
                     </div>
-                    <div>
+                    <div className="text-left">
                         <h3 className="font-semibold text-lg text-gray-900">{session.tutorName || 'Unknown Tutor'}</h3>
-                        <p className="text-gray-600 font-medium">{session.subject || 'Unknown Subject'}</p>
+                        <p className="text-blue-600 font-medium">{session.subject || 'Unknown Subject'}</p>
                         <p className="text-gray-500 text-sm mt-1">{session.topic || 'No topic specified'}</p>
                     </div>
                 </div>
