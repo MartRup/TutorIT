@@ -48,38 +48,46 @@ const Header = ({ showNav = true }) => {
 
     return (
         <header className="border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur-sm z-50">
-            <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                <Link to="/" className="text-2xl font-bold tracking-tight">
-                    <span className="text-blue-600">Tutor</span>
-                    <span className="text-green-600">IT</span>
-                </Link>
-
+            <div className="container mx-auto px-6 py-4">
                 {isLoggedIn && showNav ? (
                     // Navigation for logged in users - role-based
-                    <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
+                    <div className="flex justify-between items-center">
+                        <Link to="/" className="text-2xl font-bold tracking-tight">
+                            <span className="text-blue-600">Tutor</span>
+                            <span className="text-green-600">IT</span>
+                        </Link>
 
-                        {userRole === 'student' && (
-                            <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
-                        )}
-                        {userRole === 'tutor' && (
-                            <Link to="/sessions" className="hover:text-blue-600 transition">Sessions</Link>
-                        )}
-                        <Link to="/messages" className="hover:text-blue-600 transition">Messages</Link>
-                        <button onClick={handleLogout} className="hover:text-blue-600 transition">Logout</button>
-                    </nav>
-                ) : (
-                    // Navigation for guests
-                    <>
                         <nav className="hidden md:flex space-x-8 text-gray-600 font-medium">
-                            <Link to="/find-tutor" className="hover:text-blue-600 transition">Find a Tutor</Link>
-                            <Link to="/become-tutor" className="hover:text-blue-600 transition">Become a Tutor</Link>
-                            <Link to="/how-it-works" className="hover:text-blue-600 transition">How It Works</Link>
+                            {userRole === 'student' && (
+                                <Link to="/find-tutors" className="hover:text-blue-600 transition">Find Tutors</Link>
+                            )}
+                            {userRole === 'tutor' && (
+                                <Link to="/sessions" className="hover:text-blue-600 transition">Sessions</Link>
+                            )}
+                            <Link to="/messages" className="hover:text-blue-600 transition">Messages</Link>
+                            <button onClick={handleLogout} className="hover:text-blue-600 transition">Logout</button>
+                        </nav>
+                    </div>
+                ) : (
+                    // Navigation for guests - three column layout
+                    <div className="grid grid-cols-3 items-center">
+                        <Link to="/" className="text-2xl font-bold tracking-tight">
+                            <span className="text-blue-600">Tutor</span>
+                            <span className="text-green-600">IT</span>
+                        </Link>
+
+                        <nav className="hidden md:flex space-x-8 text-gray-600 font-medium justify-center">
+                            <span className="cursor-default">Find a Tutor</span>
+                            <span className="cursor-default">Become a Tutor</span>
+                            <span className="cursor-default">How It Works</span>
                         </nav>
 
-                        <Link to="/login" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded font-medium transition">
-                            Sign Up/Sign In
-                        </Link>
-                    </>
+                        <div className="flex justify-end">
+                            <Link to="/login" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2.5 rounded font-medium transition">
+                                Sign Up/Sign In
+                            </Link>
+                        </div>
+                    </div>
                 )}
             </div>
         </header>
