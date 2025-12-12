@@ -785,8 +785,6 @@ function SessionView({
   setIsMinimized
 }) {
   const [sessionTime, setSessionTime] = useState(0);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [messageInput, setMessageInput] = useState("");
 
   // Timer effect
   useEffect(() => {
@@ -802,13 +800,7 @@ function SessionView({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (messageInput.trim()) {
-      setChatMessages([...chatMessages, { text: messageInput, sender: "You", time: new Date() }]);
-      setMessageInput("");
-    }
-  };
+
 
   if (isMinimized) {
     return (
@@ -930,48 +922,7 @@ function SessionView({
           </div>
         </div>
 
-        {/* Main Content and Chat Container */}
-        <div className="flex flex-1">
-          {/* Chat Sidebar */}
-          <div className="w-80 bg-white border-l border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Chat</h3>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {chatMessages.length === 0 ? (
-                <div className="text-center text-gray-500 text-sm mt-8">
-                  No messages yet. Start the conversation!
-                </div>
-              ) : (
-                chatMessages.map((msg, idx) => (
-                  <div key={idx} className="mb-3">
-                    <div className="text-xs text-gray-500 mb-1">{msg.sender}</div>
-                    <div className="bg-blue-50 rounded-lg p-2 text-sm text-gray-900">
-                      {msg.text}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Send
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+
       </div>
     </div>
   );

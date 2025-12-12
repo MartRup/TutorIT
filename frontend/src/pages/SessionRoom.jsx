@@ -24,16 +24,12 @@ import Swal from 'sweetalert2';
 export default function SessionRoom() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("participants");
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [session, setSession] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
-  const [conversationId, setConversationId] = useState(null);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -82,89 +78,7 @@ export default function SessionRoom() {
     }
   }, [sessionId]);
 
-  const fetchMessages = async (convId) => {
-        try {
-            const res = await fetch(`http://localhost:8080/api/messages/conversations/${convId}/messages`, { credentials: 'include' });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.success) {
-                    setMessages(data.data);
-                }
-            }
-        } catch (err) {
-            console.error("Fetch messages failed", err);
-        }
-  };
 
-  useEffect(() => {
-    const setupChat = async () => {
-        try {
-            let convId = null;
-            const isRoleTutor = currentUser.role === 'tutor';
-            
-            if (isRoleTutor) {
-                // Tutor: Find conversation by student email
-                let studentEmail = null;
-                if (session.studentId) {
-                     // Always fetch student email to be safe
-                     const sRes = await fetch(`http://localhost:8080/students/${session.studentId}`, { credentials: 'include' });
-                     if (sRes.ok) {
-                         const sData = await sRes.json();
-                         studentEmail = sData.email;
-                     }
-                }
-
-                if (studentEmail) {
-                    const convRes = await fetch('http://localhost:8080/api/messages/conversations', { credentials: 'include' });
-                    if (convRes.ok) {
-                        const convData = await convRes.json();
-                        if (convData.success) {
-                            const match = convData.data.find(c => c.studentEmail === studentEmail);
-                            if (match) convId = match.id;
-                        }
-                    }
-                }
-            } else {
-                // Student: Create/Get conversation
-                // session.tutorId might be string, backend expects number in JSON? 
-                // MessageController does Long.valueOf(request.get("tutorId").toString()) so string is fine.
-                const res = await fetch('http://localhost:8080/api/messages/conversations', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        tutorId: session.tutorId,
-                        tutorName: session.tutorName,
-                        tutorSubject: session.subject
-                    })
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success) convId = data.data.id;
-                }
-            }
-
-            if (convId) {
-                setConversationId(convId);
-            }
-        } catch (err) {
-            console.error("Chat setup failed", err);
-        }
-    };
-
-    if (session && currentUser) {
-        setupChat();
-    }
-  }, [session, currentUser]);
-
-  useEffect(() => {
-        let interval;
-        if (conversationId) {
-            fetchMessages(conversationId);
-            interval = setInterval(() => fetchMessages(conversationId), 3000);
-        }
-        return () => clearInterval(interval);
-  }, [conversationId]);
 
   const handleEndSession = async () => {
     const result = await Swal.fire({
@@ -258,29 +172,7 @@ export default function SessionRoom() {
 
 
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !conversationId) return;
 
-    try {
-        const res = await fetch(`http://localhost:8080/api/messages/conversations/${conversationId}/messages`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ messageText: newMessage })
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            if (data.success) {
-                setNewMessage("");
-                fetchMessages(conversationId); // Refresh immediately
-            }
-        }
-    } catch (err) {
-        console.error("Send message failed", err);
-    }
-  };
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -389,110 +281,7 @@ export default function SessionRoom() {
           </div>
         </div>
 
-        {/* Right Section - Sidebar */}
-        <div className="w-80 bg-white rounded-2xl border border-gray-200 flex flex-col shadow-sm">
-          {/* Sidebar Tabs */}
-          <div className="flex p-2 gap-2 border-b border-gray-100">
-            <button 
-                onClick={() => setActiveTab("participants")}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === 'participants' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
-            >
-                <Users className="w-4 h-4" />
-                Participants
-            </button>
-            <button 
-                onClick={() => setActiveTab("chat")}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2 ${activeTab === 'chat' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
-            >
-                <MessageSquare className="w-4 h-4" />
-                Chat
-            </button>
-          </div>
 
-          {/* Sidebar Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {activeTab === 'participants' && (
-                <div className="flex-1 p-4 overflow-y-auto">
-                   <h3 className="font-bold text-gray-900 mb-4">2 Participants</h3>
-                   
-                   <div className="space-y-4">
-                       {/* Remote User (The person we are talking to) */}
-                       <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-sm font-bold text-gray-500">{remoteUser.initials}</span> 
-                            </div>
-                            <div>
-                                <p className="font-semibold text-gray-900 text-sm">{remoteUser.name}</p>
-                                <p className="text-xs text-gray-500">{remoteUser.role}</p>
-                            </div>
-                          </div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                       </div>
-
-                       {/* Local User (Me) */}
-                       <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-sm">
-                                {myInitials}
-                            </div>
-                            <div>
-                                <p className="font-semibold text-gray-900 text-sm">You (you)</p>
-                                <p className="text-xs text-gray-500">{isTutor ? "Tutor" : "Student"}</p>
-                            </div>
-                          </div>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                       </div>
-                   </div>
-                </div>
-            )}
-            
-            {activeTab === 'chat' && (
-                <div className="flex-1 flex flex-col h-full">
-                    {/* Chat Messages */}
-                    <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                        {messages.length === 0 ? (
-                            <div className="text-center text-gray-400 mt-10">
-                                <p>No messages yet.</p>
-                                <p className="text-xs">Start the conversation!</p>
-                            </div>
-                        ) : (
-                            messages.map((msg) => (
-                                <div key={msg.id} className={`flex flex-col ${msg.isMe ? 'items-end' : 'items-start'}`}>
-                                    <div className={`px-4 py-2 rounded-2xl max-w-[85%] text-sm ${msg.isMe ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'}`}>
-                                        {msg.text}
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 mt-1 px-1">{msg.time}</span>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                    
-                    {/* Chat Input */}
-                    <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100">
-                        <div className="relative">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                className="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
-                            />
-                            <button 
-                                type="submit"
-                                disabled={!newMessage.trim()}
-                                className="absolute right-1 top-1 p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            )}
-          </div>
-        </div>
 
       </div>
     </div>
